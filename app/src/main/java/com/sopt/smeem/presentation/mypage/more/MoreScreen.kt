@@ -24,9 +24,9 @@ import androidx.navigation.compose.rememberNavController
 import com.sopt.smeem.R
 import com.sopt.smeem.presentation.compose.components.SmeemDialog
 import com.sopt.smeem.presentation.splash.SplashLoginActivity
-import com.sopt.smeem.presentation.theme.Typography
-import com.sopt.smeem.presentation.theme.black
-import com.sopt.smeem.presentation.theme.gray600
+import com.sopt.smeem.presentation.compose.theme.Typography
+import com.sopt.smeem.presentation.compose.theme.black
+import com.sopt.smeem.presentation.compose.theme.gray600
 import com.sopt.smeem.util.VerticalSpacer
 
 @Composable
