@@ -6,10 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sopt.smeem.Smeem
 import com.sopt.smeem.domain.model.Date
-import com.sopt.smeem.domain.model.DiarySummary
 import com.sopt.smeem.domain.repository.DiaryRepository
 import com.sopt.smeem.event.AmplitudeEventType
-import com.sopt.smeem.presentation.home.calendar.core.CalendarState
 import com.sopt.smeem.presentation.home.calendar.core.Period
 import com.sopt.smeem.util.DateUtil
 import com.sopt.smeem.util.getNextDates
@@ -27,7 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.YearMonth
@@ -80,6 +77,7 @@ class HomeViewModel @Inject constructor(
 
     // diary
     private suspend fun getDates(startDate: LocalDate, period: Period): List<LocalDate> {
+        var diaryDates: List<LocalDate> = emptyList()
         val endDate = when (period) {
             Period.WEEK -> startDate.plusDays(END_DATE_AFTER_THREE_WEEKS)
             Period.MONTH -> startDate.plusMonths(START_DATE_AFTER_THREE_MONTHS).minusDays(1)
@@ -88,28 +86,33 @@ class HomeViewModel @Inject constructor(
         val endAsString = DateUtil.WithServer.asStringOnlyDate(endDate)
 
         return viewModelScope.async {
-            kotlin.runCatching {
+            try {
                 diaryRepository.getDiaries(startAsString, endAsString)
-            }.fold({
-                it.getOrNull()?.diaries?.keys?.toList() ?: emptyList()
-            }, {
-                Timber.e(it.message.toString())
-                emptyList()
-            })
+                    .run { diaryDates = data().diaries.keys.toList() }
+            } catch (t: Throwable) {
+                Timber.e(t)
+            }
+            diaryDates
         }.await()
     }
 
     private suspend fun getDateDiary(date: LocalDate) {
         val dateAsString = DateUtil.WithServer.asStringOnlyDate(date)
-        kotlin.runCatching {
+
+        try {
             diaryRepository.getDiaries(start = dateAsString, end = dateAsString)
-        }.fold({
-            _diaryList.postValue(
-                it.getOrNull()?.diaries?.values?.firstOrNull(),
-            )
-        }, {
-            Timber.e(it.message.toString())
-        })
+                .run {
+                    _diaryList.postValue(data().diaries.values.first().let { dto ->
+                        DiarySummary(
+                            id = dto.id,
+                            content = dto.content,
+                            createdAt = dto.createdAt
+                        )
+                    })
+                }
+        } catch (t: Throwable) {
+            Timber.e(t)
+        }
     }
 
     fun setBadgeInfo(name: String, imageUrl: String, isFirst: Boolean) {

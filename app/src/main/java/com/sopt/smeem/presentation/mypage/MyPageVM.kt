@@ -5,16 +5,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kakao.sdk.user.UserApiClient
-import com.sopt.smeem.SmeemException
-import com.sopt.smeem.data.ApiPool.onHttpFailure
 import com.sopt.smeem.domain.model.Day
 import com.sopt.smeem.domain.model.MyPage
 import com.sopt.smeem.domain.model.PushAlarm
 import com.sopt.smeem.domain.repository.LocalRepository
 import com.sopt.smeem.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,22 +28,16 @@ internal class MyPageVM @Inject constructor(
     var days: MutableSet<Day> = mutableSetOf()
 
     fun getData(onError: (Throwable) -> Unit) {
-        viewModelScope.launch {
-            userRepository.getMyPage().apply {
-                this.onSuccess {
-                    _response.value = it
-                    isTimeSet = it.hasPushAlarm && it.trainingTime.isSet()
-                }
-                this.onHttpFailure { onError(it) }
-            }
-        }
+
     }
 
-    fun changePushAlarm(hasAlarm: Boolean, onError: (SmeemException) -> Unit) {
+    fun changePushAlarm(hasAlarm: Boolean, onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            userRepository.editPushAlarm(
-                push = PushAlarm(hasAlarm = hasAlarm)
-            ).onHttpFailure { e -> onError(e) }
+            try {
+                userRepository.editPushAlarm(PushAlarm(hasAlarm = hasAlarm))
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 

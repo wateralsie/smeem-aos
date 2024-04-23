@@ -8,8 +8,8 @@
         <import type="android.view.View" />
 
         <variable
-            name="vm"
-            type="com.sopt.smeem.presentation.detail.DiaryDetailViewModel" />
+            name="diaryDetail"
+            type="com.sopt.smeem.presentation.detail.DiaryDetail" />
 
     </data>
 
@@ -59,19 +59,19 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:paddingBottom="16dp"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp">
 
                 <include
                     android:id="@+id/layout_diary_detail_random_topic"
                     layout="@layout/random_topic"
                     android:layout_width="0dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:layout_marginTop="16dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:randomTopic="@{vm.topic}"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:randomTopic="@{diaryDetail.topic}"
                     app:refreshVisibility="@{View.GONE}" />
 
                 <TextView
@@ -80,7 +80,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="18dp"
                     android:layout_marginTop="16dp"
-                    android:text="@{vm.diary}"
+                    android:text="@{diaryDetail.content}"
                     android:textAppearance="@style/TextAppearance.Smeem.Body4_regular.Height_22"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -93,7 +93,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:paddingVertical="2dp"
-                    android:text="@{vm.dateForUI}"
+                    android:text="@{diaryDetail.createdAt}"
                     android:textAppearance="@style/TextAppearance.Smeem.Caption3_regular"
                     android:textColor="@color/gray_500"
                     app:layout_constraintEnd_toEndOf="@+id/tv_diary_detail_content"
@@ -105,7 +105,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingVertical="2dp"
-                    android:text="@{vm.writer}"
+                    android:text="@{diaryDetail.writerUsername}"
                     android:textAppearance="@style/TextAppearance.Smeem.Caption3_regular"
                     android:textColor="@color/gray_500"
                     app:layout_constraintEnd_toEndOf="@id/tv_diary_detail_date"

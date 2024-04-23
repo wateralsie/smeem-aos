@@ -7,12 +7,11 @@ import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.sopt.smeem.Anonymous
 import com.sopt.smeem.LocalStatus
-import com.sopt.smeem.SmeemException
-import com.sopt.smeem.data.ApiPool.onHttpFailure
 import com.sopt.smeem.domain.repository.DiaryRepository
 import com.sopt.smeem.domain.repository.LocalRepository
 import com.sopt.smeem.domain.repository.TranslateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -31,14 +30,17 @@ class NativeWriteStep1ViewModel @Inject constructor(
 
     val translateResult = MutableLiveData<String>()
 
-    fun getRandomTopic(onError: (SmeemException) -> Unit) {
+    fun getRandomTopic(onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            diaryRepository.getTopic()
-                .onSuccess {
-                    topicId = it.id
-                    topic.value = it.content
-                }
-                .onHttpFailure { e -> onError(e) }
+            try {
+                diaryRepository.getTopic()
+                    .run {
+                        topicId = data().id
+                        topic.value = data().content
+                    }
+            } catch (t:Throwable) {
+                onError(t)
+            }
         }
     }
 

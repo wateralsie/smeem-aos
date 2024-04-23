@@ -110,7 +110,7 @@ class NativeWriteStep1Activity :
 
     private fun setRandomTopic() {
         viewModel.getRandomTopic { e ->
-            Toast.makeText(this@NativeWriteStep1Activity, e.description(), Toast.LENGTH_SHORT)
+            Toast.makeText(this@NativeWriteStep1Activity, e.message, Toast.LENGTH_SHORT)
                 .show()
         }
     }

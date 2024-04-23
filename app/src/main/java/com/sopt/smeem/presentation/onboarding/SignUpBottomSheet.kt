@@ -13,6 +13,7 @@ import com.sopt.smeem.logging
 import com.sopt.smeem.presentation.auth.LoginProcess
 import com.sopt.smeem.presentation.auth.KakaoHandler
 import com.sopt.smeem.util.setOnSingleClickListener
+import timber.log.Timber
 
 class SignUpBottomSheet() : BottomSheetDialogFragment(), LoginProcess {
     var _binding: BottomSheetSignUpBinding? = null
@@ -43,7 +44,7 @@ class SignUpBottomSheet() : BottomSheetDialogFragment(), LoginProcess {
                             kakaoAccessToken = kakaoAccessToken,
                             kakaoRefreshToken = kakaoRefreshToken,
                             socialType = SocialType.KAKAO,
-                            onError = { e -> e.logging("LOGIN_FAILED") }
+                            onError = { e -> Timber.e("LOGIN_FAILED") }
                         )
                     },
                     onFailed = { exception -> exception.logging("KAKAO_LOGIN") })
@@ -57,7 +58,7 @@ class SignUpBottomSheet() : BottomSheetDialogFragment(), LoginProcess {
                             kakaoAccessToken = kakaoAccessToken,
                             kakaoRefreshToken = kakaoRefreshToken,
                             socialType = SocialType.KAKAO,
-                            onError = { e -> e.logging("LOGIN_FAILED") }
+                            onError = { e -> Timber.e("LOGIN_FAILED") }
                         )
                     },
                     onFailed = { exception -> exception.logging("KAKAO_LOGIN") })

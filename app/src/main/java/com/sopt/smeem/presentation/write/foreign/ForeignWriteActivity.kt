@@ -4,28 +4,23 @@ import android.content.Intent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.sopt.smeem.DefaultSnackBar
 import com.sopt.smeem.R
-import com.sopt.smeem.data.SmeemDataStore.RECENT_DIARY_DATE
-import com.sopt.smeem.data.SmeemDataStore.dataStore
 import com.sopt.smeem.databinding.ActivityForeignWriteBinding
-import com.sopt.smeem.description
 import com.sopt.smeem.event.AmplitudeEventType
 import com.sopt.smeem.presentation.BindingActivity
 import com.sopt.smeem.presentation.EventVM
+import com.sopt.smeem.presentation.IntentConstants.RETRIEVED_BADGE_DTO
+import com.sopt.smeem.presentation.IntentConstants.SNACKBAR_TEXT
 import com.sopt.smeem.presentation.home.HomeActivity
 import com.sopt.smeem.presentation.write.Constant.tooltipHasNeverChecked
 import com.sopt.smeem.util.TooltipUtil.createTopicTooltip
 import com.sopt.smeem.util.hideKeyboard
 import com.sopt.smeem.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.Serializable
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @AndroidEntryPoint
 class ForeignWriteActivity :
@@ -99,8 +94,8 @@ class ForeignWriteActivity :
     }
 
     private fun setRandomTopic() {
-        viewModel.getRandomTopic { e ->
-            Toast.makeText(this@ForeignWriteActivity, e.description(), Toast.LENGTH_SHORT).show()
+        viewModel.getRandomTopic { t ->
+            Toast.makeText(this@ForeignWriteActivity, t.message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -112,26 +107,19 @@ class ForeignWriteActivity :
                     hideKeyboard(currentFocus ?: View(this))
                     viewModel.uploadDiary(
                         onSuccess = {
-                            // recent_diary_date 값 변경
-                            lifecycleScope.launch {
-                                dataStore.edit { storage ->
-                                    storage[RECENT_DIARY_DATE] =
-                                        LocalDate.now()
-                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                                }
-                            }
                             Intent(this, HomeActivity::class.java).apply {
-                                putExtra("retrievedBadge", it as Serializable)
+                                putExtra(RETRIEVED_BADGE_DTO, it as Serializable)
                                 putExtra(
-                                    "snackbarText",
+                                    SNACKBAR_TEXT,
                                     resources.getString(R.string.diary_write_done_message)
                                 )
                                 flags =
                                     Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                             }.run(::startActivity)
                         },
-                        onError = { e ->
-                            Toast.makeText(this, e.description(), Toast.LENGTH_SHORT).show()
+                        onError = { t ->
+                            Timber.e(t)
+                            Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
                         }
                     )
                     eventVm.sendEvent(AmplitudeEventType.DIARY_COMPLETE)

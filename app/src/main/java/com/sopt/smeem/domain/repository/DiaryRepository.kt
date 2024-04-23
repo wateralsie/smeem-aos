@@ -1,30 +1,20 @@
 package com.sopt.smeem.domain.repository
 
-import com.sopt.smeem.domain.model.Diary
-import com.sopt.smeem.domain.model.DiarySummaries
-import com.sopt.smeem.domain.model.RetrievedBadge
-import com.sopt.smeem.domain.model.Topic
+import com.sopt.smeem.domain.ApiResult
+import com.sopt.smeem.domain.dto.DeleteDiaryRequestDto
+import com.sopt.smeem.domain.dto.GetDiaryResponseDto
+import com.sopt.smeem.domain.dto.GetDiarySummariesDto
+import com.sopt.smeem.domain.dto.GetTopicDto
+import com.sopt.smeem.domain.dto.PatchDiaryRequestDto
+import com.sopt.smeem.domain.dto.WriteDiaryRequestDto
+import com.sopt.smeem.domain.dto.WriteDiaryResponseDto
 
 interface DiaryRepository {
-    /**
-     * 일기 내용을 서버로 전송합니다.
-     */
-    suspend fun postDiary(diary: Diary): Result<List<RetrievedBadge>>
-
-    /**
-     * 일기 내용을 수정합니다.
-     */
-    suspend fun patchDiary(diary: Diary): Result<Unit>
-
-    /**
-     * 일기를 제거한다.
-     */
-    suspend fun removeDiary(diaryId: Long): Result<Unit>
-
-    /**
-     * 일기를 상세 조회한다.
-     */
-    suspend fun getDiaryDetail(diaryId: Long): Result<Diary>
+    suspend fun postDiary(dto: WriteDiaryRequestDto): ApiResult<WriteDiaryResponseDto>
+    suspend fun patchDiary(dto: PatchDiaryRequestDto): ApiResult<Unit>
+    suspend fun deleteDiary(dto: DeleteDiaryRequestDto): ApiResult<Unit>
+    suspend fun getDiaryDetail(diaryId: Long): ApiResult<GetDiaryResponseDto>
+    suspend fun getTopic(): ApiResult<GetTopicDto>
 
     // calendar related
     /**
@@ -53,10 +43,8 @@ interface DiaryRepository {
      *     - Ex)
      *     start : 2023-04-10, end : 2023-10-20  => 예외 발생
      */
-    suspend fun getDiaries(start: String? = null, end: String? = null): Result<DiarySummaries>
-
-    /**
-     * 일기 랜덤 주제를 조회합니다.
-     */
-    suspend fun getTopic(): Result<Topic>
+    suspend fun getDiaries(
+        start: String? = null,
+        end: String? = null
+    ): ApiResult<GetDiarySummariesDto>
 }

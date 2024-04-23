@@ -5,9 +5,7 @@ import android.util.Log
 class SmeemException(
     val errorCode: SmeemErrorCode,
     val logMessage: String? = null,
-    val throwable: Throwable
-) : RuntimeException(if (logMessage.isNullOrEmpty()) errorCode.message else logMessage) {
-}
+) : RuntimeException(if (logMessage.isNullOrEmpty()) errorCode.message else logMessage)
 
 enum class SmeemErrorCode(
     val code: Int,
@@ -24,6 +22,4 @@ enum class SmeemErrorCode(
 }
 
 fun SmeemException.description() = this.errorCode.message
-fun SmeemException.tip() = this.errorCode.tip
-fun SmeemException.logging(tag: String) =
-    Log.e(tag, this.logMessage ?: this.description(), this.throwable)
+fun SmeemException.logging(tag: String) = Log.e(tag, this.logMessage ?: this.description())

@@ -1,11 +1,12 @@
 package com.sopt.smeem.domain.repository
 
 import com.sopt.smeem.TrainingGoalType
-import com.sopt.smeem.domain.model.TrainingGoal
-import com.sopt.smeem.domain.model.TrainingGoalSimple
+import com.sopt.smeem.domain.ApiResult
+import com.sopt.smeem.domain.dto.TrainingGoalDto
+import com.sopt.smeem.domain.dto.TrainingGoalSimpleDto
 
 interface TrainingRepository {
-    suspend fun getDetail(goal: TrainingGoalType?): Result<TrainingGoal>
+    suspend fun getDetail(goal: TrainingGoalType): ApiResult<TrainingGoalDto>
 
-    suspend fun getAll(): Result<TrainingGoalSimple>
+    suspend fun getAll(): ApiResult<TrainingGoalSimpleDto>
 }

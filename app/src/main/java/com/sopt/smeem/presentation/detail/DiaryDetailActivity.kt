@@ -6,10 +6,10 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import com.sopt.smeem.R
 import com.sopt.smeem.databinding.ActivityDiaryDetailBinding
-import com.sopt.smeem.description
 import com.sopt.smeem.event.AmplitudeEventType
 import com.sopt.smeem.presentation.BindingActivity
 import com.sopt.smeem.presentation.EventVM
+import com.sopt.smeem.presentation.IntentConstants.DIARY_ID
 import com.sopt.smeem.presentation.home.HomeActivity
 import com.sopt.smeem.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,13 +23,13 @@ class DiaryDetailActivity :
 
     override fun constructLayout() {
         // databinding
-        binding.vm = viewModel
         binding.lifecycleOwner = this
         // data
-        viewModel.diaryId = intent.getLongExtra("diaryId", -1)
-        viewModel.getDiaryDetail { e->
-            Toast.makeText(this, e.description(), Toast.LENGTH_SHORT).show()
+        viewModel.setDiaryId(intent.getLongExtra(DIARY_ID, -1))
+        viewModel.getDiaryDetail { t ->
+            Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
         }
+
         eventVm.sendEvent(AmplitudeEventType.MY_DIARY_CLICK)
     }
 
@@ -38,11 +38,18 @@ class DiaryDetailActivity :
             finish()
         }
         binding.btnDiaryDetailMenu.setOnSingleClickListener {
-            DiaryDetailBottomSheet(viewModel, eventVm).show(supportFragmentManager, DiaryDetailBottomSheet.TAG)
+            DiaryDetailBottomSheet(viewModel, eventVm).show(
+                supportFragmentManager,
+                DiaryDetailBottomSheet.TAG
+            )
         }
     }
 
     override fun addObservers() {
+        viewModel.diaryDetailResult.observe(this) {
+            binding.diaryDetail = it
+        }
+
         viewModel.isTopicExist.observe(this) {
             if (!it) binding.layoutDiaryDetailRandomTopic.layoutSection.visibility = View.GONE
         }

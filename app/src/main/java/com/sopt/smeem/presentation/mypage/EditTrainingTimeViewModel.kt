@@ -3,13 +3,13 @@ package com.sopt.smeem.presentation.mypage
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sopt.smeem.SmeemException
-import com.sopt.smeem.data.ApiPool.onHttpFailure
 import com.sopt.smeem.domain.model.Day
 import com.sopt.smeem.domain.model.Training
 import com.sopt.smeem.domain.model.TrainingTime
 import com.sopt.smeem.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,11 +35,21 @@ class EditTrainingTimeViewModel @Inject constructor(
     fun canConfirmEdit() =
         days.isNotEmpty() && (TrainingTime(days, hour.value!!, minute.value!!) != originalTime)
 
-    fun sendServer(onError: (SmeemException) -> Unit) {
+    fun sendServer(onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            userRepository.editTraining(
-                training = Training(trainingTime = TrainingTime(days, hour.value!!, minute.value!!))
-            ).onHttpFailure { e -> onError(e) }
+            try {
+                userRepository.editTraining(
+                    Training(
+                        trainingTime = TrainingTime(
+                            days,
+                            hour.value!!,
+                            minute.value!!
+                        )
+                    )
+                )
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 

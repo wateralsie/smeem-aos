@@ -4,6 +4,7 @@ import com.sopt.smeem.data.model.request.DiaryRequest
 import com.sopt.smeem.data.model.response.ApiResponse
 import com.sopt.smeem.data.model.response.DiaryResponse
 import com.sopt.smeem.data.model.response.DiaryWritingResponse
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -16,31 +17,31 @@ interface DiaryService {
     @POST("/api/v2/diaries")
     suspend fun post(
         @Body request: DiaryRequest.Writing
-    ): ApiResponse<DiaryWritingResponse>
+    ): Response<ApiResponse<DiaryWritingResponse>>
 
     @PATCH("/api/v2/diaries/{diaryId}")
     suspend fun patch(
         @Body request: DiaryRequest.Editing,
         @Path("diaryId") diaryId: Long
-    ): ApiResponse<Unit>
+    ): Response<ApiResponse<Unit>>
 
     @DELETE("/api/v2/diaries/{diaryId}")
     suspend fun delete(
         @Path("diaryId") diaryId: Long
-    ): ApiResponse<Unit>
+    ): Response<ApiResponse<Unit>>
 
     @GET("/api/v2/diaries/{diaryId}")
     suspend fun getDetail(
         @Path("diaryId") diaryId: Long
-    ): ApiResponse<DiaryResponse.Detail>
+    ): Response<ApiResponse<DiaryResponse.Detail>>
 
     // calendar related
     @GET("/api/v2/diaries")
     suspend fun getList(
         @Query("start") startDate: String, // yyyy-mm-dd
         @Query("end") endDate: String, // yyyy-mm-dd
-    ): ApiResponse<DiaryResponse.Diaries>
+    ): Response<ApiResponse<DiaryResponse.Diaries>>
 
     @GET("/api/v2/topics/random")
-    suspend fun getTopic(): ApiResponse<DiaryResponse.Topic>
+    suspend fun getTopic(): Response<ApiResponse<DiaryResponse.Topic>>
 }

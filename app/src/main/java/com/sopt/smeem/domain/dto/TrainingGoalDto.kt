@@ -1,6 +1,6 @@
-package com.sopt.smeem.domain.model
+package com.sopt.smeem.domain.dto
 
-data class TrainingGoal(
+data class TrainingGoalDto(
     val title: String,
     val goal: String,
     val way: String,

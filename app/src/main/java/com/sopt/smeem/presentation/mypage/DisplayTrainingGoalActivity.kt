@@ -11,6 +11,8 @@ import com.sopt.smeem.TrainingGoalType
 import com.sopt.smeem.databinding.ActivityDisplayTrainingGoalBinding
 import com.sopt.smeem.description
 import com.sopt.smeem.presentation.BindingActivity
+import com.sopt.smeem.presentation.IntentConstants.SELECTED_GOAL
+import com.sopt.smeem.presentation.IntentConstants.SNACKBAR_TEXT
 import com.sopt.smeem.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -32,9 +34,9 @@ class DisplayTrainingGoalActivity : BindingActivity<ActivityDisplayTrainingGoalB
     }
 
     private fun getGoalData() {
-        viewModel.setSelectedGoal(intent.getSerializableExtra("selectedGoal") as TrainingGoalType)
-        viewModel.getGoalDetail { e ->
-            Toast.makeText(applicationContext, e.description(), Toast.LENGTH_SHORT).show()
+        viewModel.setSelectedGoal(intent.getSerializableExtra(SELECTED_GOAL) as TrainingGoalType)
+        viewModel.getGoalDetail { t ->
+            Toast.makeText(applicationContext, t.message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -48,11 +50,11 @@ class DisplayTrainingGoalActivity : BindingActivity<ActivityDisplayTrainingGoalB
         binding.btnMyPageDisplayTraining.setOnSingleClickListener {
             viewModel.sendServer(
                 onError = { e ->
-                    Toast.makeText(this, e.errorCode.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
                 }
             )
             Intent(this, MyPageActivity::class.java).apply {
-                putExtra("snackbarText", resources.getString(R.string.my_page_edit_done_message))
+                putExtra(SNACKBAR_TEXT, resources.getString(R.string.my_page_edit_done_message))
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }.run(::startActivity)
         }
