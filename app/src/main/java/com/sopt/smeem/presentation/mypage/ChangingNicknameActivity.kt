@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sopt.smeem.Anonymous
 import com.sopt.smeem.R
-import com.sopt.smeem.data.ApiPool.onHttpFailure
 import com.sopt.smeem.databinding.ActivityChangingNicknameBinding
 import com.sopt.smeem.domain.repository.LoginRepository
 import com.sopt.smeem.domain.repository.UserRepository
@@ -38,7 +37,7 @@ class ChangingNicknameActivity :
     }
 
     private fun setUpData() {
-        with (binding.etChangeNickname) {
+        with(binding.etChangeNickname) {
             setText(intent.getStringExtra("originalNickname"))
             requestFocus()
         }
@@ -47,7 +46,10 @@ class ChangingNicknameActivity :
     private fun onTextWrite() {
         binding.etChangeNickname.addTextChangedListener(
             onTextChanged = { name, _, _, _ ->
-                if (name.isNullOrBlank() || name.length > 10 || name.toString() == intent.getStringExtra("originalNickname")) {
+                if (name.isNullOrBlank() || name.length > 10 || name.toString() == intent.getStringExtra(
+                        "originalNickname"
+                    )
+                ) {
                     nextButtonOff()
                 } else {
                     nextButtonOn()
@@ -125,22 +127,21 @@ class ChangingNicknameVM @Inject constructor(
     val nicknameDuplicated: LiveData<Boolean>
         get() = _nicknameDuplicated
 
-    fun send(name: String): Unit //  TODO : nickname 변경 api call
+    fun send(name: String) //  TODO : nickname 변경 api call
     {
         viewModelScope.launch {
-            userRepository.modifyUserInfo(
-                nickname = name
-            )
+            userRepository.modifyUsername(nickname = name)
         }
     }
 
     fun callApiNicknameDuplicated(onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            loginRepository.checkNicknameDuplicated(content)
-                .onSuccess { result ->
-                    _nicknameDuplicated.value = result
-                }
-                .onHttpFailure { onError(it) }
+            try {
+                loginRepository.checkNicknameDuplicated(content)
+                    .run { _nicknameDuplicated.value = data() }
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 }

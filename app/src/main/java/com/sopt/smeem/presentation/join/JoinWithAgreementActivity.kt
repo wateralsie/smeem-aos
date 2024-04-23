@@ -33,8 +33,8 @@ class JoinWithAgreementActivity :
     private lateinit var refreshToken: String
 
     override fun constructLayout() {
-        accessToken = intent.getStringExtra(ACCESS_TOKEN) ?: throw SmeemException(SmeemErrorCode.SYSTEM_ERROR, "토큰이 정상적으로 전달되지 않았습니다.", IllegalStateException())
-        refreshToken = intent.getStringExtra(REFRESH_TOKEN) ?: throw SmeemException(SmeemErrorCode.SYSTEM_ERROR, "토큰이 정상적으로 전달되지 않았습니다.", IllegalStateException())
+        accessToken = intent.getStringExtra(ACCESS_TOKEN) ?: throw SmeemException(SmeemErrorCode.SYSTEM_ERROR, "토큰이 정상적으로 전달되지 않았습니다.")
+        refreshToken = intent.getStringExtra(REFRESH_TOKEN) ?: throw SmeemException(SmeemErrorCode.SYSTEM_ERROR, "토큰이 정상적으로 전달되지 않았습니다.")
 
 
         EntranceSelection.SERVICE.id = binding.btnEntranceAgreementService.id
@@ -150,7 +150,7 @@ class JoinWithAgreementActivity :
             selected,
             accessToken,
             onError = { e ->
-                Toast.makeText(this@JoinWithAgreementActivity, e.description(), Toast.LENGTH_SHORT)
+                Toast.makeText(this@JoinWithAgreementActivity, e.message, Toast.LENGTH_SHORT)
                     .show()
             }
         )

@@ -4,13 +4,9 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import androidx.activity.viewModels
 import com.sopt.smeem.R
-import com.sopt.smeem.Smeem.Companion.AMPLITUDE
 import com.sopt.smeem.databinding.ActivitySplashLoginBinding
-import com.sopt.smeem.domain.model.LoginResult
-import com.sopt.smeem.event.AmplitudeEventType.BADGE_MORE_CLICK
+import com.sopt.smeem.domain.dto.LoginResultDto
 import com.sopt.smeem.event.AmplitudeEventType.FIRST_VIEW
-import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_ALARM_VIEW
-import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_GOAL_VIEW
 import com.sopt.smeem.event.AmplitudeEventType.SIGN_UP_SUCCESS
 import com.sopt.smeem.presentation.BindingActivity
 import com.sopt.smeem.presentation.EventVM
@@ -83,7 +79,7 @@ class SplashLoginActivity :
         finish()
     }
 
-    private fun gotoNext(loginResult: LoginResult) {
+    private fun gotoNext(loginResult: LoginResultDto) {
         when (loginResult.isPlanRegistered) {
             true -> gotoJoin(
                 loginResult.apiAccessToken,

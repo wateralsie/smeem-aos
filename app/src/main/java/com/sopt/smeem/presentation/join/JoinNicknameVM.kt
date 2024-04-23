@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sopt.smeem.Anonymous
-import com.sopt.smeem.data.ApiPool.onHttpFailure
 import com.sopt.smeem.domain.repository.LoginRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -24,11 +23,13 @@ class JoinNicknameVM @Inject constructor(
 
     fun callApiNicknameDuplicated(onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            loginRepository.checkNicknameDuplicated(content)
-                .onSuccess { result ->
-                    _nicknameDuplicated.value = result
+            try {
+                loginRepository.checkNicknameDuplicated(content).run {
+                    _nicknameDuplicated.value = data()
                 }
-                .onHttpFailure { onError(it) }
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 }

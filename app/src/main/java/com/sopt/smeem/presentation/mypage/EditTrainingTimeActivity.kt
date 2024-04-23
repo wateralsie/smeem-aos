@@ -10,6 +10,7 @@ import com.sopt.smeem.databinding.ActivityEditTrainingTimeBinding
 import com.sopt.smeem.description
 import com.sopt.smeem.domain.model.TrainingTime
 import com.sopt.smeem.presentation.BindingActivity
+import com.sopt.smeem.presentation.IntentConstants.SNACKBAR_TEXT
 import com.sopt.smeem.util.ButtonUtil.switchOff
 import com.sopt.smeem.util.ButtonUtil.switchOn
 import com.sopt.smeem.util.DateUtil
@@ -100,11 +101,11 @@ class EditTrainingTimeActivity :
 
     private fun onTouchComplete() {
         binding.btnMyPageEditTime.setOnSingleClickListener {
-            viewModel.sendServer { e ->
-                Toast.makeText(applicationContext, e.description(), Toast.LENGTH_SHORT).show()
+            viewModel.sendServer { t ->
+                Toast.makeText(applicationContext, t.message, Toast.LENGTH_SHORT).show()
             }
             Intent(this, MyPageActivity::class.java).apply {
-                putExtra("snackbarText", resources.getString(R.string.my_page_edit_done_message))
+                putExtra(SNACKBAR_TEXT, resources.getString(R.string.my_page_edit_done_message))
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }.run(::startActivity)
         }

@@ -14,7 +14,7 @@ class DisplayGoalFragment :
     private val vm: OnBoardingVM by activityViewModels()
     override fun constructLayout() {
         vm.getGoalDetail { e ->
-            Toast.makeText(context, e.description(), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
         }
 
         vm.trainingGoal.observe(this) {

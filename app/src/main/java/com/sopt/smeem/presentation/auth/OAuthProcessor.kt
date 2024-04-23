@@ -52,7 +52,6 @@ object KakaoHandler : OAuthHandler {
                     throw SmeemException(
                         errorCode = SmeemErrorCode.CLIENT_ERROR,
                         logMessage = "카카오 로그인 중 client 에서 발생시킨 에러 ${error.reason}",
-                        throwable = error
                     )
                 }
 
@@ -60,7 +59,6 @@ object KakaoHandler : OAuthHandler {
                     throw SmeemException(
                         errorCode = SmeemErrorCode.CLIENT_ERROR,
                         logMessage = "카카오 로그인 중 인증 과정에서 발생된 에러 (${error.reason})",
-                        throwable = error
                     )
                 }
 
@@ -68,7 +66,6 @@ object KakaoHandler : OAuthHandler {
                     throw SmeemException(
                         errorCode = SmeemErrorCode.CLIENT_ERROR,
                         logMessage = "KAKAO API 호출 중 발생된 에러 (${error.reason})",
-                        throwable = error
                     )
                 }
 
@@ -76,7 +73,6 @@ object KakaoHandler : OAuthHandler {
                     throw SmeemException(
                         errorCode = SmeemErrorCode.SYSTEM_ERROR,
                         logMessage = "카카오 로그인 중 비정상적으로 발생된 에러",
-                        throwable = error
                     )
                 }
             }

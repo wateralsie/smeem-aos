@@ -1,13 +1,10 @@
 package com.sopt.smeem.presentation.join
 
-import android.widget.Button
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sopt.smeem.Anonymous
-import com.sopt.smeem.SmeemException
-import com.sopt.smeem.data.ApiPool.onHttpFailure
 import com.sopt.smeem.domain.model.Authentication
 import com.sopt.smeem.domain.repository.LocalRepository
 import com.sopt.smeem.domain.repository.UserRepository
@@ -52,12 +49,15 @@ class JoinVM @Inject constructor(
         nickname: String,
         selected: Set<EntranceSelection>,
         accessToken: String,
-        onError: (SmeemException) -> Unit
+        onError: (Throwable) -> Unit
     ) {
         viewModelScope.launch {
-            userRepository.modifyUserInfo(accessToken, nickname, selected.contains(MARKETING))
-                .onSuccess { _joinSucceed.value = true }
-                .onHttpFailure { e -> onError(e) }
+            try {
+                userRepository.registerUserInfo(accessToken, nickname, selected.contains(MARKETING))
+                    .run { _joinSucceed.value = true }
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 

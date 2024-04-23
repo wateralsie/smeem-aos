@@ -214,7 +214,7 @@ class OnBoardingActivity :
                             if (!isFinishing) finish()
                         },
                         onError = { e ->
-                            Toast.makeText(this, e.description(), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
                         }
                     )
                 } else {
@@ -283,22 +283,19 @@ class OnBoardingActivity :
                 false -> {
                     vm.sendPlanDataOnAnonymous(
                         onSuccess = {
-                            vm.loadingEnd()
                             val toJoin = Intent(
                                 this@OnBoardingActivity,
                                 JoinWithNicknameActivity::class.java
                             )
-                            toJoin.putExtra("accessToken", result.apiAccessToken)
-                            toJoin.putExtra("refreshToken", result.apiRefreshToken)
+                            toJoin.putExtra(ACCESS_TOKEN, result.apiAccessToken)
+                            toJoin.putExtra(REFRESH_TOKEN, result.apiRefreshToken)
                             startActivity(toJoin)
 
                             if (!isFinishing) finish()
                         },
-                        onError = { e ->
+                        onError = { t ->
                             Toast.makeText(
-                                this@OnBoardingActivity,
-                                e.description(),
-                                Toast.LENGTH_SHORT
+                                this@OnBoardingActivity, t.message, Toast.LENGTH_SHORT
                             ).show()
                         }
                     )
@@ -373,7 +370,7 @@ class OnBoardingActivity :
                     startActivity(toJoin)
                     if (!isFinishing) finish()
                 },
-                onError = { e -> Toast.makeText(this, e.description(), Toast.LENGTH_SHORT).show() }
+                onError = { e -> Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show() }
             )
         }
         // 사전 로그인이 없었으면 login 동작하도록

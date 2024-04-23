@@ -1,14 +1,14 @@
-package com.sopt.smeem.domain.model
+package com.sopt.smeem.domain.dto
 
 import java.time.LocalDate
 import java.time.LocalTime
 
-data class DiarySummaries(
-    val diaries: Map<LocalDate, DiarySummary>,
+data class GetDiarySummariesDto(
+    val diaries: Map<LocalDate, GetDiarySummaryDto>,
     val has30Past: Boolean
 )
 
-data class DiarySummary(
+data class GetDiarySummaryDto(
     val id: Long,
     val content: String,
     val createdAt: LocalTime,

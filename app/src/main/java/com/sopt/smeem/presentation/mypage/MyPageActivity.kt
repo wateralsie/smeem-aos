@@ -159,16 +159,16 @@ class MyPageActivity : BindingActivity<ActivityMyPageBinding>(R.layout.activity_
             if (isChecked) {
                 vm.changePushAlarm(
                     hasAlarm = true,
-                    onError = { e ->
-                        Toast.makeText(this, e.errorCode.message, Toast.LENGTH_SHORT).show()
+                    onError = { t ->
+                        Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
                     }
                 )
                 unFreezeTimeTable()
             } else {
                 vm.changePushAlarm(
                     hasAlarm = false,
-                    onError = { e ->
-                        Toast.makeText(this, e.errorCode.message, Toast.LENGTH_SHORT).show()
+                    onError = { t ->
+                        Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
                     }
                 )
                 freezeTimeTable()

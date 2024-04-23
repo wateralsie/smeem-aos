@@ -9,7 +9,7 @@
 
         <variable
             name="training"
-            type="com.sopt.smeem.domain.model.TrainingGoal" />
+            type="com.sopt.smeem.domain.dto.TrainingGoalDto" />
 
     </data>
 

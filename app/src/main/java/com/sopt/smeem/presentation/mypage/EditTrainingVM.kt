@@ -5,11 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sopt.smeem.Anonymous
-import com.sopt.smeem.SmeemException
 import com.sopt.smeem.TrainingGoalType
-import com.sopt.smeem.data.ApiPool.onHttpFailure
+import com.sopt.smeem.domain.dto.TrainingGoalDto
 import com.sopt.smeem.domain.model.Training
-import com.sopt.smeem.domain.model.TrainingGoal
 import com.sopt.smeem.domain.repository.TrainingRepository
 import com.sopt.smeem.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,8 +23,8 @@ class EditTrainingVM @Inject constructor(
     val selectedGoal: LiveData<TrainingGoalType>
         get() = _selectedGoal
 
-    private val _trainingGoal = MutableLiveData<TrainingGoal>()
-    val trainingGoal: LiveData<TrainingGoal>
+    private val _trainingGoal = MutableLiveData<TrainingGoalDto>()
+    val trainingGoal: LiveData<TrainingGoalDto>
         get() = _trainingGoal
 
     fun upsert(target: TrainingGoalType) {
@@ -47,20 +45,25 @@ class EditTrainingVM @Inject constructor(
         _selectedGoal.value = goal
     }
 
-    fun getGoalDetail(onError: (SmeemException) -> Unit) {
-        viewModelScope.launch {
-            trainingRepository.getDetail(_selectedGoal.value)
-                .onSuccess { _trainingGoal.value = it }
-                .onHttpFailure { e -> onError(e) }
+    fun getGoalDetail(onError: (Throwable) -> Unit) {
+        selectedGoal.value?.let { goal ->
+            viewModelScope.launch {
+                try {
+                    trainingRepository.getDetail(goal)
+                } catch (t: Throwable) {
+                    onError(t)
+                }
+            }
         }
     }
 
-    fun sendServer(onError: (SmeemException) -> Unit) {
+    fun sendServer(onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            userRepository.editTraining(
-                training = Training(type = selectedGoal.value!!)
-            ).onHttpFailure { e -> onError(e) }
+            try {
+                userRepository.editTraining(Training(type = selectedGoal.value!!))
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
-
 }

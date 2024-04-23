@@ -46,8 +46,7 @@ class LoginBottomSheet : BottomSheetDialogFragment(), LoginProcess {
                             kakaoAccessToken = kakaoAccessToken,
                             socialType = SocialType.KAKAO,
                             onError = { exception ->
-                                exception.logging("LOGIN_FAILED")
-                                Toast.makeText(context, exception.description(), Toast.LENGTH_SHORT)
+                                Toast.makeText(context, exception.message, Toast.LENGTH_SHORT)
                                     .show()
                             }
                         )
@@ -63,8 +62,7 @@ class LoginBottomSheet : BottomSheetDialogFragment(), LoginProcess {
                             kakaoAccessToken = kakaoAccessToken,
                             socialType = SocialType.KAKAO,
                             onError = { exception ->
-                                exception.logging("LOGIN_FAILED")
-                                Toast.makeText(context, exception.description(), Toast.LENGTH_SHORT)
+                                Toast.makeText(context, exception.message, Toast.LENGTH_SHORT)
                                     .show()
                             }
                         )

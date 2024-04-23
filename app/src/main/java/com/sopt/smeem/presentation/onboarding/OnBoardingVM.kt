@@ -6,16 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sopt.smeem.Anonymous
-import com.sopt.smeem.SmeemException
 import com.sopt.smeem.SocialType
 import com.sopt.smeem.TrainingGoalType
-import com.sopt.smeem.data.ApiPool.onHttpFailure
+import com.sopt.smeem.domain.dto.LoginResultDto
+import com.sopt.smeem.domain.dto.PostOnBoardingDto
+import com.sopt.smeem.domain.dto.TrainingGoalDto
 import com.sopt.smeem.domain.model.Authentication
 import com.sopt.smeem.domain.model.Day
-import com.sopt.smeem.domain.model.LoginResult
-import com.sopt.smeem.domain.model.OnBoarding
 import com.sopt.smeem.domain.model.Training
-import com.sopt.smeem.domain.model.TrainingGoal
 import com.sopt.smeem.domain.model.TrainingTime
 import com.sopt.smeem.domain.repository.LocalRepository
 import com.sopt.smeem.domain.repository.LoginRepository
@@ -33,16 +31,16 @@ class OnBoardingVM @Inject constructor(
     private val localRepository: LocalRepository,
 ) : ViewModel() {
 
-    private val _loginResult = MutableLiveData<LoginResult>()
-    val loginResult: LiveData<LoginResult>
+    private val _loginResult = MutableLiveData<LoginResultDto>()
+    val loginResult: LiveData<LoginResultDto>
         get() = _loginResult
 
     private val _selectedGoal = MutableLiveData(TrainingGoalType.NO_SELECTED)
     val selectedGoal: LiveData<TrainingGoalType>
         get() = _selectedGoal
 
-    private val _trainingGoal = MutableLiveData<TrainingGoal>()
-    val trainingGoal: LiveData<TrainingGoal>
+    private val _trainingGoal = MutableLiveData<TrainingGoalDto>()
+    val trainingGoal: LiveData<TrainingGoalDto>
         get() = _trainingGoal
 
     private val _setTimeLater = MutableLiveData<Boolean>()
@@ -142,16 +140,22 @@ class OnBoardingVM @Inject constructor(
         kakaoAccessToken: String,
         kakaoRefreshToken: String,
         socialType: SocialType,
-        onError: (SmeemException) -> Unit
+        onError: (Throwable) -> Unit
     ) {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener {
-            if (it.isSuccessful) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { fcmTask ->
+            if (fcmTask.isSuccessful) {
                 viewModelScope.launch {
-                    loginRepository.execute(accessToken = kakaoAccessToken, socialType, it.result)
-                        .onSuccess {
-                            _loginResult.value = it
+                    try {
+                        loginRepository.execute(
+                            accessToken = kakaoAccessToken,
+                            socialType,
+                            fcmTask.result
+                        ).run {
+                            _loginResult.value = data()
                         }
-                        .onHttpFailure { e -> onError(e) }
+                    } catch (t: Throwable) {
+                        onError(t)
+                    }
                 }
             }
         }
@@ -165,48 +169,64 @@ class OnBoardingVM @Inject constructor(
         // TODO : Room 에 보관하기
     }
 
-    fun sendPlanDataOnAnonymous(onSuccess: (Unit) -> Unit, onError: (SmeemException) -> Unit) {
-        viewModelScope.launch {
-            userRepositoryWithAnonymous.registerOnBoarding(
-                OnBoarding(
-                    trainingGoalType = selectedGoal.value ?: TrainingGoalType.NO_SELECTED,
-                    hasAlarm = isNotiGranted.value ?: false,
-                    day = days,
-                    hour = selectedHour.value,
-                    minute = selectedMinute.value
-                ),
-                loginResult.value!!
-            )
-                .onSuccess(onSuccess)
-                .onHttpFailure { e -> onError(e) }
-            loadingEnd()
+    fun sendPlanDataOnAnonymous(onSuccess: (Unit) -> Unit, onError: (Throwable) -> Unit) {
+        loginResult.value?.let { loginResult ->
+            viewModelScope.launch {
+                try {
+                    userRepositoryWithAnonymous.registerOnBoarding(
+                        PostOnBoardingDto(
+                            trainingGoalType = selectedGoal.value ?: TrainingGoalType.NO_SELECTED,
+                            hasAlarm = isNotiGranted.value ?: false,
+                            day = days,
+                            hour = selectedHour.value,
+                            minute = selectedMinute.value
+                        ), loginResult
+                    ).run { onSuccess(Unit) }
+                } catch (t: Throwable) {
+                    onError(t)
+                } finally {
+                    loadingEnd()
+                }
+            }
         }
     }
 
     fun sendPlanDataWithAuth(
         token: String,
         onSuccess: (Unit) -> Unit,
-        onError: (SmeemException) -> Unit
+        onError: (Throwable) -> Unit
     ) {
         viewModelScope.launch {
-            userRepositoryWithAnonymous.editTraining(
-                accessToken = token,
-                training = Training(
-                    type = selectedGoal.value ?: TrainingGoalType.NO_SELECTED,
-                    trainingTime = TrainingTime(days = days.toSet(), hour = hour, minute = minute),
-                    hasAlarm = isNotiGranted.value ?: false,
+            try {
+                userRepositoryWithAnonymous.registerTraining(
+                    accessToken = token,
+                    training = Training(
+                        type = selectedGoal.value ?: TrainingGoalType.NO_SELECTED,
+                        trainingTime = TrainingTime(
+                            days = days.toSet(),
+                            hour = hour,
+                            minute = minute
+                        ),
+                        hasAlarm = isNotiGranted.value ?: false,
+                    )
                 )
-            )
-                .onSuccess(onSuccess)
-                .onHttpFailure { e -> onError(e) }
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 
-    fun getGoalDetail(onError: (SmeemException) -> Unit) {
-        viewModelScope.launch {
-            trainingRepository.getDetail(selectedGoal.value)
-                .onSuccess { _trainingGoal.value = it }
-                .onHttpFailure { e -> onError(e) }
+    fun getGoalDetail(onError: (Throwable) -> Unit) {
+        selectedGoal.value?.let { goal ->
+            viewModelScope.launch {
+                try {
+                    trainingRepository.getDetail(goal).run {
+                        _trainingGoal.value = data()
+                    }
+                } catch (t: Throwable) {
+                    onError(t)
+                }
+            }
         }
     }
 
