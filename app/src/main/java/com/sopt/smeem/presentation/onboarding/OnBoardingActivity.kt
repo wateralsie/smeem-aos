@@ -10,8 +10,6 @@ import androidx.core.content.ContextCompat
 import com.sopt.smeem.R
 import com.sopt.smeem.databinding.ActivityOnBoardingBinding
 import com.sopt.smeem.domain.model.TrainingGoalType
-import com.sopt.smeem.description
-import com.sopt.smeem.event.AmplitudeEventType
 import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_ALARM_VIEW
 import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_GOAL_VIEW
 import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_PLAN_VIEW
