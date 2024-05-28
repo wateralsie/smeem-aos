@@ -54,7 +54,7 @@ fun MyBadgesBottomSheet(
         if (badge.hasBadge) {
             ObtainedBottomSheetContent(info = badge)
         } else {
-            NotObtainedBottomSheetContent(info = badge, modifier = Modifier.widthIn(max = 120.dp))
+            NotObtainedBottomSheetContent(info = badge)
         }
     }
 }
