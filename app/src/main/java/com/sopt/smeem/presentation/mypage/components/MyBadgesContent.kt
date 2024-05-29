@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -36,8 +37,8 @@ import com.sopt.smeem.data.datasource.BadgeList
 import com.sopt.smeem.domain.dto.GetBadgeListDto
 import com.sopt.smeem.presentation.compose.theme.SmeemTheme
 import com.sopt.smeem.presentation.compose.theme.Typography
+import com.sopt.smeem.presentation.compose.theme.black
 import com.sopt.smeem.presentation.compose.theme.gray100
-import com.sopt.smeem.util.VerticalSpacer
 import com.sopt.smeem.util.previewPlaceholder
 
 @Composable
@@ -102,17 +103,17 @@ fun MyBadgesObtainedCard(
                         .crossfade(true)
                         .build(),
                     contentDescription = null,
-                    placeholder = previewPlaceholder(image = R.drawable.ic_badge_thirty_row)
+                    placeholder = previewPlaceholder(image = R.drawable.ic_badge_thirty_row),
+                    contentScale = ContentScale.Fit
                 )
             }
-
-            VerticalSpacer(height = 4.dp)
 
             Text(
                 text = info.name,
                 style = Typography.labelSmall.copy(
                     fontWeight = FontWeight.Medium,
-                    fontSize = 9.sp
+                    fontSize = 9.sp,
+                    color = black
                 ),
             )
         }
