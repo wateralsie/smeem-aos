@@ -5,7 +5,7 @@ import com.sopt.smeem.domain.model.BadgeType
 data class GetBadgeListDto(
     val badgeId: Long,
     val name: String,
-    val type: BadgeType,
+    val type: BadgeType?,
     val hasBadge: Boolean,
     val remainingNumber: Int?,
     val contentForNonBadgeOwner: String,
@@ -19,7 +19,7 @@ data class GetBadgeListDto(
         val text = contentForNonBadgeOwner.split("n")
         return listOf(
             text.firstOrNull() ?: "",
-            remainingNumber.toString(),
+            remainingNumber?.toString() ?: "",
             text.lastOrNull() ?: ""
         )
     }

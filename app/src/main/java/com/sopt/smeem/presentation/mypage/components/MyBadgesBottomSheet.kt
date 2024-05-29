@@ -146,7 +146,7 @@ fun NotObtainedBottomSheetContent(
             color = black
         )
 
-        if (info.type == BadgeType.COUNTING) {
+        if (info.type!! == BadgeType.COUNTING) {
             val parts = info.getNonBadgeTextParts()
 
             VerticalSpacer(height = 8.dp)
