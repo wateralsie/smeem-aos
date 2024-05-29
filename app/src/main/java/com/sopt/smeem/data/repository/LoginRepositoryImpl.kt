@@ -1,20 +1,46 @@
 package com.sopt.smeem.data.repository
 
-import com.sopt.smeem.SocialType
-import com.sopt.smeem.data.datasource.LoginExecutor
-import com.sopt.smeem.domain.model.LoginResult
+import com.sopt.smeem.data.model.request.LoginRequest
+import com.sopt.smeem.data.service.LoginService
+import com.sopt.smeem.domain.common.ApiResult
+import com.sopt.smeem.domain.dto.LoginResultDto
+import com.sopt.smeem.domain.model.SocialType
 import com.sopt.smeem.domain.repository.LoginRepository
 
 class LoginRepositoryImpl(
-    private val loginExecutor: LoginExecutor
+    private val loginService: LoginService,
 ) : LoginRepository {
-    override suspend fun execute(accessToken: String, socialType: SocialType, fcmToken: String): Result<LoginResult> =
-        kotlin.runCatching { loginExecutor.execute(accessToken, socialType, fcmToken) }.map { response ->
-            LoginResult.from(response.data!!)
+    override suspend fun execute(
+        accessToken: String,
+        socialType: SocialType,
+        fcmToken: String
+    ): ApiResult<LoginResultDto> =
+        loginService.login("Bearer $accessToken", LoginRequest(socialType, fcmToken))
+            .let { response ->
+                if (response.isSuccessful) {
+                    response.body()!!.data.let { data ->
+                        ApiResult(
+                            response.code(),
+                            LoginResultDto(
+                                apiAccessToken = data.accessToken,
+                                apiRefreshToken = data.refreshToken,
+                                isRegistered = data.isRegistered,
+                                isPlanRegistered = data.hasPlan,
+                            )
+                        )
+                    }
+                } else {
+                    throw response.code().handleStatusCode()
+                }
+
+            }
+
+    override suspend fun checkNicknameDuplicated(nickname: String): ApiResult<Boolean> =
+        loginService.checkDuplicated(nickname).let { response ->
+            if (response.isSuccessful) {
+                ApiResult(response.code(), response.body()!!.data.isExist)
+            } else {
+                throw response.code().handleStatusCode()
+            }
         }
-
-    override suspend fun checkNicknameDuplicated(nickname: String): Result<Boolean> =
-        kotlin.runCatching { loginExecutor.checkNicknameDuplicated(nickname) }
-            .map { response -> response.data!!.isExist }
-
 }

@@ -3,6 +3,7 @@ package com.sopt.smeem.presentation.home
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
@@ -10,21 +11,25 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
-import com.sopt.smeem.DefaultSnackBar
+import com.google.android.material.snackbar.Snackbar
 import com.sopt.smeem.R
 import com.sopt.smeem.data.SmeemDataStore.RECENT_DIARY_DATE
 import com.sopt.smeem.data.SmeemDataStore.dataStore
 import com.sopt.smeem.databinding.ActivityHomeBinding
-import com.sopt.smeem.domain.model.RetrievedBadge
+import com.sopt.smeem.domain.dto.RetrievedBadgeDto
 import com.sopt.smeem.event.AmplitudeEventType
-import com.sopt.smeem.presentation.BindingActivity
 import com.sopt.smeem.presentation.EventVM
+import com.sopt.smeem.presentation.IntentConstants.DIARY_ID
+import com.sopt.smeem.presentation.IntentConstants.RETRIEVED_BADGE_DTO
+import com.sopt.smeem.presentation.IntentConstants.SNACKBAR_TEXT
+import com.sopt.smeem.presentation.base.BindingActivity
+import com.sopt.smeem.presentation.base.DefaultSnackBar
+import com.sopt.smeem.presentation.compose.theme.SmeemTheme
 import com.sopt.smeem.presentation.detail.DiaryDetailActivity
 import com.sopt.smeem.presentation.home.WritingBottomSheet.Companion.TAG
 import com.sopt.smeem.presentation.home.calendar.SmeemCalendar
-import com.sopt.smeem.presentation.home.calendar.core.CalendarIntent
+import com.sopt.smeem.presentation.home.calendar.core.CalendarState
 import com.sopt.smeem.presentation.home.calendar.core.Period
-import com.sopt.smeem.presentation.home.calendar.ui.theme.SmeemTheme
 import com.sopt.smeem.presentation.mypage.MyPageActivity
 import com.sopt.smeem.util.DateUtil
 import com.sopt.smeem.util.getWeekStartDate
@@ -34,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -42,6 +48,7 @@ import java.util.Locale
 class HomeActivity : BindingActivity<ActivityHomeBinding>(R.layout.activity_home) {
 
     private lateinit var bs: WritingBottomSheet
+    private var backPressedTime: Long = 0
 
     private val homeViewModel by viewModels<HomeViewModel>()
     private val eventVm: EventVM by viewModels()
@@ -71,6 +78,8 @@ class HomeActivity : BindingActivity<ActivityHomeBinding>(R.layout.activity_home
         observeData()
         onTouchWrite()
         eventVm.sendEvent(AmplitudeEventType.HOME_VIEW)
+        initBackPressedCallback()
+        homeViewModel.activeVisit { Timber.e("visit count 반영 실패. ", it) }
     }
 
     override fun onResume() {
@@ -98,13 +107,13 @@ class HomeActivity : BindingActivity<ActivityHomeBinding>(R.layout.activity_home
     private fun initView(day: LocalDate) {
         lifecycleScope.launch {
             with(homeViewModel) {
-                onIntent(
-                    CalendarIntent.LoadNextDates(
+                onStateChange(
+                    CalendarState.LoadNextDates(
                         startDate = day.minusWeeks(1).getWeekStartDate(),
                         period = Period.WEEK,
                     ),
                 )
-                onIntent(CalendarIntent.SelectDate(date = day))
+                onStateChange(CalendarState.SelectDate(date = day))
                 updateWriteDiaryButtonVisibility()
             }
         }
@@ -113,16 +122,16 @@ class HomeActivity : BindingActivity<ActivityHomeBinding>(R.layout.activity_home
     }
 
     private fun showDiaryCompleted() {
-        val msg = intent.getStringExtra("snackbarText")
+        val msg = intent.getStringExtra(SNACKBAR_TEXT)
         if (msg != null) {
             DefaultSnackBar.make(binding.root, msg).show()
-            intent.removeExtra("snackbarText")
+            intent.removeExtra(SNACKBAR_TEXT)
         }
     }
 
     private fun showBadgeDialog() {
         val retrievedBadge =
-            intent.getSerializableExtra("retrievedBadge") as List<RetrievedBadge>?
+            intent.getSerializableExtra(RETRIEVED_BADGE_DTO) as List<RetrievedBadgeDto>?
                 ?: emptyList()
         if (retrievedBadge.isNotEmpty()) {
             val badgeList = retrievedBadge.asReversed()
@@ -141,7 +150,7 @@ class HomeActivity : BindingActivity<ActivityHomeBinding>(R.layout.activity_home
                     if (isFirstBadge) isFirstBadge = false
                 }
             }
-            intent.removeExtra("retrievedBadge")
+            intent.removeExtra(RETRIEVED_BADGE_DTO)
         }
     }
 
@@ -167,7 +176,7 @@ class HomeActivity : BindingActivity<ActivityHomeBinding>(R.layout.activity_home
     private fun setInitListener() {
         binding.clDiaryList.setOnSingleClickListener {
             Intent(this, DiaryDetailActivity::class.java).apply {
-                putExtra("diaryId", homeViewModel.diaryList.value?.id)
+                putExtra(DIARY_ID, homeViewModel.diaryList.value?.id)
             }.run(::startActivity)
         }
     }
@@ -194,5 +203,28 @@ class HomeActivity : BindingActivity<ActivityHomeBinding>(R.layout.activity_home
                 }
             }
         }
+    }
+
+    private fun initBackPressedCallback() {
+        val onBackPressedCallback =
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (System.currentTimeMillis() - backPressedTime >= BACK_PRESSED_INTERVAL) {
+                        backPressedTime = System.currentTimeMillis()
+                        Snackbar.make(
+                            binding.root,
+                            getString(R.string.notice_back_process),
+                            Snackbar.LENGTH_SHORT,
+                        ).show()
+                    } else {
+                        finish()
+                    }
+                }
+            }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+    }
+
+    companion object {
+        const val BACK_PRESSED_INTERVAL = 2000
     }
 }

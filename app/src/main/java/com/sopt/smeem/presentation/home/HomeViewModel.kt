@@ -6,10 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sopt.smeem.Smeem
 import com.sopt.smeem.domain.model.Date
-import com.sopt.smeem.domain.model.DiarySummary
 import com.sopt.smeem.domain.repository.DiaryRepository
+import com.sopt.smeem.domain.repository.UserRepository
 import com.sopt.smeem.event.AmplitudeEventType
-import com.sopt.smeem.presentation.home.calendar.core.CalendarIntent
+import com.sopt.smeem.presentation.home.calendar.core.CalendarState
 import com.sopt.smeem.presentation.home.calendar.core.Period
 import com.sopt.smeem.util.DateUtil
 import com.sopt.smeem.util.getNextDates
@@ -36,6 +36,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     /***** variables *****/
@@ -80,6 +81,7 @@ class HomeViewModel @Inject constructor(
 
     // diary
     private suspend fun getDates(startDate: LocalDate, period: Period): List<LocalDate> {
+        var diaryDates: List<LocalDate> = emptyList()
         val endDate = when (period) {
             Period.WEEK -> startDate.plusDays(END_DATE_AFTER_THREE_WEEKS)
             Period.MONTH -> startDate.plusMonths(START_DATE_AFTER_THREE_MONTHS).minusDays(1)
@@ -88,28 +90,33 @@ class HomeViewModel @Inject constructor(
         val endAsString = DateUtil.WithServer.asStringOnlyDate(endDate)
 
         return viewModelScope.async {
-            kotlin.runCatching {
+            try {
                 diaryRepository.getDiaries(startAsString, endAsString)
-            }.fold({
-                it.getOrNull()?.diaries?.keys?.toList() ?: emptyList()
-            }, {
-                Timber.e(it.message.toString())
-                emptyList()
-            })
+                    .run { diaryDates = data().diaries.keys.toList() }
+            } catch (t: Throwable) {
+                Timber.e(t)
+            }
+            diaryDates
         }.await()
     }
 
     private suspend fun getDateDiary(date: LocalDate) {
         val dateAsString = DateUtil.WithServer.asStringOnlyDate(date)
-        kotlin.runCatching {
+
+        try {
             diaryRepository.getDiaries(start = dateAsString, end = dateAsString)
-        }.fold({
-            _diaryList.postValue(
-                it.getOrNull()?.diaries?.values?.firstOrNull(),
-            )
-        }, {
-            Timber.e(it.message.toString())
-        })
+                .run {
+                    _diaryList.postValue(data().diaries.values.firstOrNull()?.let { dto ->
+                        DiarySummary(
+                            id = dto.id,
+                            content = dto.content,
+                            createdAt = dto.createdAt
+                        )
+                    })
+                }
+        } catch (t: Throwable) {
+            Timber.e(t)
+        }
     }
 
     fun setBadgeInfo(name: String, imageUrl: String, isFirst: Boolean) {
@@ -119,9 +126,9 @@ class HomeViewModel @Inject constructor(
     }
 
     // calendar
-    fun onIntent(intent: CalendarIntent) {
-        when (intent) {
-            CalendarIntent.ExpandCalendar -> {
+    fun onStateChange(state: CalendarState) {
+        when (state) {
+            CalendarState.ExpandCalendar -> {
                 calculateCalendarDates(
                     startDate = currentMonth.value.minusMonths(1).atDay(FIRST),
                     period = Period.MONTH,
@@ -130,7 +137,7 @@ class HomeViewModel @Inject constructor(
                 sendEvent(AmplitudeEventType.FULL_CALENDAR_APPEAR)
             }
 
-            CalendarIntent.CollapseCalendar -> {
+            CalendarState.CollapseCalendar -> {
                 calculateCalendarDates(
                     startDate = calculateWeeklyCalendarVisibleStartDay()
                         .getWeekStartDate()
@@ -140,14 +147,14 @@ class HomeViewModel @Inject constructor(
                 _isCalendarExpanded.value = false
             }
 
-            is CalendarIntent.LoadNextDates -> {
-                calculateCalendarDates(intent.startDate, intent.period)
+            is CalendarState.LoadNextDates -> {
+                calculateCalendarDates(state.startDate, state.period)
             }
 
-            is CalendarIntent.SelectDate -> {
+            is CalendarState.SelectDate -> {
                 viewModelScope.launch {
-                    getDateDiary(intent.date)
-                    _selectedDate.emit(intent.date)
+                    getDateDiary(state.date)
+                    _selectedDate.emit(state.date)
                 }
             }
         }
@@ -236,6 +243,16 @@ class HomeViewModel @Inject constructor(
         } catch (t: Throwable) {
             // 이벤트 발송이 기존 로직에 영향은 없도록
             Timber.tag("AMPLITUDE").e("amplitude send error!")
+        }
+    }
+
+    fun activeVisit(onError: (Throwable) -> Unit) {
+        viewModelScope.launch {
+            try {
+                userRepository.activeVisit()
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 

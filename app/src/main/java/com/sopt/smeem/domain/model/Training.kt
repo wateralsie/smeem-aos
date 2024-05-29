@@ -1,12 +1,12 @@
 package com.sopt.smeem.domain.model
 
-import com.sopt.smeem.TrainingGoalType
 import com.sopt.smeem.data.model.request.TrainingRequest
 
 data class Training(
     val type: TrainingGoalType? = null,
     val trainingTime: TrainingTime? = null,
-    val hasAlarm: Boolean? = null
+    val hasAlarm: Boolean? = null,
+    val planId: Int? = null
 ) {
     fun extractTime(): TrainingRequest.TrainingTime? {
         if (trainingTime == null) {

@@ -16,6 +16,13 @@
     <string name="on_boarding_goal_button4">  유창한 비즈니스 영어</string>
     <string name="on_boarding_goal_button5">  어학 시험 고득점</string>
     <string name="on_boarding_goal_button6">  아직 모르겠어요</string>
+    <string name="on_boarding_training_plan_button1"> 주 1회 작성할게요</string>
+    <string name="on_boarding_training_plan_button2"> 주 3회 작성할게요</string>
+    <string name="on_boarding_training_plan_button3"> 주 5회 작성할게요</string>
+    <string name="on_boarding_training_plan_button4"> 매일 작성할게요</string>
+
+    <string name="on_boarding_training_plan_header_title">트레이닝 플랜 설정</string>
+    <string name="on_boarding_training_plan_header_description">목표를 이루기 위한 일기 작성 플랜을 세워요.</string>
     <string name="on_boarding_encouraging_header_title">추천 트레이닝 방법</string>
     <string name="on_boarding_encouraging_header_description">스밈과 함께한다면 분명 목표를 이룰 거에요!</string>
     <string name="on_boarding_encouraging_box_header_title">나의 목표는</string>
@@ -41,9 +48,6 @@
     <string name="entrance_agreement_location">[필수] 위치기반 서비스 이용약관 동의</string>
     <string name="entrance_agreement_marketing">[선택] 마케팅 정보 활용 동의</string>
     <string name="my_page_badges">내 배지</string>
-    <string name="my_page_languages">학습 언어</string>
-    <string name="my_page_alarm">학습 알림</string>
-    <string name="my_page_push">트레이닝 푸시알림</string>
     <string name="my_page_edit_done_message">변경 완료</string>
     <string name="diary_write_next">다음</string>
     <string name="diary_write_done">완료</string>
@@ -54,7 +58,6 @@
     <string name="diary_write_hint">일기를 작성해주세요 :)</string>
     <string name="diary_native_write_hint">완전한 문장으로 한국어 일기를 작성하면, 더욱 정확한 힌트를 받을 수 있어요.</string>
     <string name="diary_edit_done_message">수정 완료</string>
-    <string name="language_english">English</string>
     <string name="language_korean">한국어</string>
     <string name="dummy_diary_korean">오늘은 OPR을 공개한 날이었다. 안 떨릴 줄 알았는데 겁나 떨렸당. 사실 카페가 추웠어서 추워서 떠는 건지 긴장 돼서 떠는 건지 구분이 잘 안 갔다. 근데 사실 나는 다리 떠는 것도 습관이라 다리를 떨어서 몸이 떨린 걸 수도 있다. 오늘은 OPR을 공개한 날이었다. 안 떨릴 줄 알았는데 겁나 떨렸당. 사실 카페가 추웠어서 추워서 떠는 건지 긴장 돼서 떠는 건지 구분이 잘 안 갔다. 근데 사실 나는 다리 떠는 것도 습관이라 다리를 떨어서 몸이 떨린 걸 수도 있다.</string>
     <string name="my_page">My Page</string>
@@ -71,4 +74,61 @@
     <string name="marketing_info_agreement">https://smeem.notion.site/793bae40ccd14654828b68ee41ac51b6?pvs=4</string>
     <string name="manual_url">https://smeem.notion.site/334e225bb69b45c28f31fe363ca9f25e?pvs=4</string>
     <string name="title_activity_smeem_calendar">SmeemCalendar</string>
+
+    <!-- Badge Dialog -->
+    <string name="welcome_badge">웰컴 배지</string>
+    <string name="navigate_first_diary">첫 일기 쓰러가기</string>
+    <string name="view_all_badge">배지 모두보기</string>
+
+    <!-- My Page -->
+    <string name="my_smeem">나의 스밈</string>
+    <string name="my_plan">나의 플랜</string>
+    <string name="my_badges">나의 배지</string>
+
+    <string name="my_plan_visit_days">방문일</string>
+    <string name="my_plan_entire_diary">총 일기</string>
+    <string name="my_plan_continuity_diary">연속일기</string>
+    <string name="my_plan_badge">배지</string>
+
+    <string name="smeem_card_edit">수정하기</string>
+    <string name="change_nickname_card">닉네임 변경</string>
+    <string name="my_page_languages">학습 언어</string>
+    <string name="my_page_study_alarm">학습 알림</string>
+    <string name="language_english">English</string>
+    <string name="edit_target_language">edit target language</string>
+    <string name="my_page_training_push_alarm">트레이닝 푸시알림</string>
+
+    <string name="my_page_change_nickname">닉네임 변경</string>
+    <string name="my_page_change_nickname_button">완료</string>
+
+    <!-- My Page More View -->
+    <string name="my_page_more_information">정보</string>
+    <string name="my_page_more_manual">이용 안내</string>
+    <string name="my_page_more_account_management">계정 관리</string>
+    <string name="my_page_more_logout">로그아웃</string>
+    <string name="my_page_more_delete_account">계정 삭제</string>
+
+    <!-- Smeem Dialog -->
+    <string name="smeem_dialog_yes">예</string>
+    <string name="smeem_dialog_no">아니요</string>
+    <string name="smeem_dialog_logout_title">로그아웃</string>
+    <string name="smeem_dialog_logout_content">로그아웃 하시겠습니까?</string>
+    <string name="smeem_dialog_delete_account_title">계정을 삭제하시겠습니까?</string>
+    <string name="smeem_dialog_delete_dialog_content">이전에 작성했던 일기는 모두 사라집니다.</string>
+
+    <!-- Training Time -->
+    <string name="default_training_time">10:00 PM</string>
+    <string name="my_page_setting_training_time_title">알림 시간</string>
+    <string name="edit_traint_time_top_app_bar_title">학습 알림 설정</string>
+    <string name="training_time_change_button">완료</string>
+
+    <!-- Training Plan -->
+    <string name="edit_training_plan_title">트레이닝 플랜 변경</string>
+    <string name="training_plan_selection_icon">selection icon</string>
+    <string name="edit_training_plan_button">완료</string>
+    <string name="no_plan_title">아직 플랜이 없어요!</string>
+    <string name="no_plan_navigate_description">플랜 설정하러 가기</string>
+    <string name="set_my_plan">플랜 설정하기</string>
+    <string name="notice_back_process">뒤로가기 버튼을 한번 더 누르면 종료됩니다.</string>
+
 </resources>

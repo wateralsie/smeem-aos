@@ -8,14 +8,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import com.sopt.smeem.R
-import com.sopt.smeem.TrainingGoalType
 import com.sopt.smeem.databinding.ActivityOnBoardingBinding
-import com.sopt.smeem.description
+import com.sopt.smeem.domain.model.TrainingGoalType
 import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_ALARM_VIEW
 import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_GOAL_VIEW
+import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_PLAN_VIEW
 import com.sopt.smeem.event.AmplitudeEventType.SIGN_UP_SUCCESS
-import com.sopt.smeem.presentation.BindingActivity
 import com.sopt.smeem.presentation.EventVM
+import com.sopt.smeem.presentation.base.BindingActivity
 import com.sopt.smeem.presentation.home.HomeActivity
 import com.sopt.smeem.presentation.join.JoinConstant.ACCESS_TOKEN
 import com.sopt.smeem.presentation.join.JoinConstant.REFRESH_TOKEN
@@ -46,6 +46,7 @@ class OnBoardingActivity :
     override fun addObservers() {
         observeStepChanging()
         observeOnStep1()
+        observeOnStep2()
         observeOnStep3()
         observeLoading()
     }
@@ -88,7 +89,10 @@ class OnBoardingActivity :
                     }
                 }
 
-                1 -> { // step 1 fragment => 학습 목표 선택하기
+                1 -> { // step 1 fragment => 트레이닝 목표 선택하기
+                    if (vm.selectedGoal.value!!.selected) {
+                        nextButtonOn()
+                    }
                     setHeaderStepNo(1)
                     setHeaderTitle(resources.getText(R.string.on_boarding_goal_header_title))
                     setHeaderDescription(resources.getText(R.string.on_boarding_goal_header_description))
@@ -103,10 +107,11 @@ class OnBoardingActivity :
                     eventVm.sendEvent(ON_BOARDING_GOAL_VIEW)
                 }
 
-                2 -> { // step 2 fragment => 선택한 학습 목표 보여주기
+                2 -> { // step 2 fragment => 트레이닝 플랜 설정
+                    nextButtonOff()
                     setHeaderStepNo(2)
-                    setHeaderTitle(resources.getText(R.string.on_boarding_encouraging_header_title))
-                    setHeaderDescription(resources.getText(R.string.on_boarding_encouraging_header_description))
+                    setHeaderTitle(resources.getText(R.string.on_boarding_training_plan_header_title))
+                    setHeaderDescription(resources.getText(R.string.on_boarding_training_plan_header_description))
                     setButtonTextNext()
 
                     vm.isDaysEmpty.value = false
@@ -114,9 +119,10 @@ class OnBoardingActivity :
                     supportFragmentManager.beginTransaction()
                         .replace(
                             R.id.fcv_on_boarding,
-                            DisplayGoalFragment()
+                            TrainingPlanSettingFragment()
                         )
                         .commit()
+                    eventVm.sendEvent(ON_BOARDING_PLAN_VIEW)
                 }
 
                 3 -> { // step 3 fragment => 알림 시간 설정하기
@@ -148,6 +154,17 @@ class OnBoardingActivity :
         vm.selectedGoal.observe(this@OnBoardingActivity) {
             // 어떤 버튼값이라도 선택되어있으면 step2 로가는 next 를 활성화시킨다.
             if (it != TrainingGoalType.NO_SELECTED) {
+                nextButtonOn()
+            } else {
+                nextButtonOff()
+            }
+        }
+    }
+
+    private fun observeOnStep2() {
+        vm.selectedPlan.observe(this@OnBoardingActivity) {
+            // 어떤 버튼값이라도 선택되어있으면 step2 로가는 next 를 활성화시킨다.
+            if (it != TrainingPlanType.NOT_SELECTED) {
                 nextButtonOn()
             } else {
                 nextButtonOff()
@@ -214,7 +231,7 @@ class OnBoardingActivity :
                             if (!isFinishing) finish()
                         },
                         onError = { e ->
-                            Toast.makeText(this, e.description(), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
                         }
                     )
                 } else {
@@ -228,7 +245,7 @@ class OnBoardingActivity :
         vm.isDaysEmpty.observe(this) {
             if (it) {
                 nextButtonOff()
-            } else if (vm.selectedGoal.value != TrainingGoalType.NO_SELECTED) {
+            } else if (vm.selectedPlan.value != TrainingPlanType.NOT_SELECTED) {
                 nextButtonOn()
             }
         }
@@ -283,22 +300,19 @@ class OnBoardingActivity :
                 false -> {
                     vm.sendPlanDataOnAnonymous(
                         onSuccess = {
-                            vm.loadingEnd()
                             val toJoin = Intent(
                                 this@OnBoardingActivity,
                                 JoinWithNicknameActivity::class.java
                             )
-                            toJoin.putExtra("accessToken", result.apiAccessToken)
-                            toJoin.putExtra("refreshToken", result.apiRefreshToken)
+                            toJoin.putExtra(ACCESS_TOKEN, result.apiAccessToken)
+                            toJoin.putExtra(REFRESH_TOKEN, result.apiRefreshToken)
                             startActivity(toJoin)
 
                             if (!isFinishing) finish()
                         },
-                        onError = { e ->
+                        onError = { t ->
                             Toast.makeText(
-                                this@OnBoardingActivity,
-                                e.description(),
-                                Toast.LENGTH_SHORT
+                                this@OnBoardingActivity, t.message, Toast.LENGTH_SHORT
                             ).show()
                         }
                     )
@@ -373,7 +387,7 @@ class OnBoardingActivity :
                     startActivity(toJoin)
                     if (!isFinishing) finish()
                 },
-                onError = { e -> Toast.makeText(this, e.description(), Toast.LENGTH_SHORT).show() }
+                onError = { e -> Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show() }
             )
         }
         // 사전 로그인이 없었으면 login 동작하도록

@@ -1,86 +1,125 @@
 package com.sopt.smeem.data.repository
 
-import com.sopt.smeem.data.datasource.DiaryCommander
 import com.sopt.smeem.data.datasource.DiaryReader
-import com.sopt.smeem.domain.model.Diary
-import com.sopt.smeem.domain.model.DiarySummaries
-import com.sopt.smeem.domain.model.DiarySummary
-import com.sopt.smeem.domain.model.RetrievedBadge
-import com.sopt.smeem.domain.model.Topic
+import com.sopt.smeem.data.model.request.DiaryRequest
+import com.sopt.smeem.data.service.DiaryService
+import com.sopt.smeem.domain.common.ApiResult
+import com.sopt.smeem.domain.dto.DeleteDiaryRequestDto
+import com.sopt.smeem.domain.dto.GetDiaryResponseDto
+import com.sopt.smeem.domain.dto.GetDiarySummariesDto
+import com.sopt.smeem.domain.dto.GetDiarySummaryDto
+import com.sopt.smeem.domain.dto.GetTopicDto
+import com.sopt.smeem.domain.dto.PatchDiaryRequestDto
+import com.sopt.smeem.domain.dto.RetrievedBadgeDto
+import com.sopt.smeem.domain.dto.WriteDiaryRequestDto
+import com.sopt.smeem.domain.dto.WriteDiaryResponseDto
 import com.sopt.smeem.domain.repository.DiaryRepository
 import com.sopt.smeem.util.DateUtil
 
 class DiaryRepositoryImpl(
-    private val diaryCommander: DiaryCommander,
+    private val diaryService: DiaryService,
     private val diaryReader: DiaryReader,
 ) : DiaryRepository {
-    override suspend fun postDiary(diary: Diary): Result<List<RetrievedBadge>> =
-        kotlin.runCatching { diaryCommander.writeDiary(diary).data!!.badges }
-            .map { badges ->
-                badges.map { badge ->
-                    RetrievedBadge(
-                        name = badge.name,
-                        imageUrl = badge.imageUrl,
+    override suspend fun postDiary(diary: WriteDiaryRequestDto): ApiResult<WriteDiaryResponseDto> =
+        diaryService.post(DiaryRequest.Writing(diary.content, diary.topicId)).let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.let {
+                    ApiResult(
+                        response.code(),
+                        WriteDiaryResponseDto(
+                            diaryId = it.data.diaryId,
+                            retrievedBadgeList = it.data.badges.map { badge ->
+                                RetrievedBadgeDto(
+                                    badge.name,
+                                    badge.imageUrl
+                                )
+                            }
+                        )
                     )
                 }
+            } else {
+                throw response.code().handleStatusCode()
             }
+        }
 
-    override suspend fun patchDiary(diary: Diary): Result<Unit> =
-        kotlin.runCatching { diaryCommander.editDiary(diary) }
+    override suspend fun patchDiary(dto: PatchDiaryRequestDto): ApiResult<Unit> =
+        diaryService.patch(DiaryRequest.Editing(dto.content), dto.id).let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.let { ApiResult(response.code(), Unit) }
+            } else {
+                throw response.code().handleStatusCode()
+            }
+        }
 
-    override suspend fun removeDiary(diaryId: Long): Result<Unit> =
-        kotlin.runCatching { diaryCommander.removeDiary(diaryId) }
+    override suspend fun deleteDiary(dto: DeleteDiaryRequestDto): ApiResult<Unit> =
+        diaryService.delete(dto.id).let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.let { ApiResult(response.code(), Unit) }
+            } else {
+                throw response.code().handleStatusCode()
+            }
+        }
 
-    override suspend fun getDiaryDetail(diaryId: Long): Result<Diary> =
-        kotlin.runCatching { diaryReader.getDetail(diaryId) }
-            .map { response ->
-                Diary(
-                    id = response.data!!.diaryId,
-                    content = response.data.content,
-                    topic = response.data.topic,
-                    createdAt = response.data.createdAt,
-                    username = response.data.username,
-                    corrections = response.data.corrections?.map {
-                        Diary.Correction(
-                            id = it.correctionId,
-                            before = it.before,
-                            after = it.after,
+    override suspend fun getDiaryDetail(diaryId: Long): ApiResult<GetDiaryResponseDto> =
+        diaryService.getDetail(diaryId).let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.let { body ->
+                    ApiResult(
+                        response.code(), GetDiaryResponseDto(
+                            id = body.data.diaryId,
+                            content = body.data.content,
+                            createdAt = DateUtil.asLocalDateTime(body.data.createdAt),
+                            username = body.data.username,
+                            topic = body.data.topic,
                         )
-                    } ?: emptyList(),
-                )
+                    )
+                }
+            } else {
+                throw response.code().handleStatusCode()
             }
+        }
 
     // calendar related
     override suspend fun getDiaries(
         start: String?,
         end: String?
-    ): Result<DiarySummaries> =
-        kotlin.runCatching { diaryReader.getList(start, end) }
-            .map { response ->
-                DiarySummaries(
-                    diaries = response.data!!.diaries.associateBy(
-                        keySelector = { diary ->
-                            DateUtil.asLocalDateTime(diary.createdAt).toLocalDate()
-                        },
-                        valueTransform = { diary ->
-                            DiarySummary(
-                                id = diary.diaryId,
-                                content = diary.content,
-                                createdAt = DateUtil.asLocalDateTime(diary.createdAt).toLocalTime()
-                            )
-                        }
-                    ),
-                    has30Past = response.data.has30Past,
-                )
+    ): ApiResult<GetDiarySummariesDto> =
+        diaryReader.getList(start, end).let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.data.let { data ->
+                    ApiResult(
+                        response.code(), GetDiarySummariesDto(
+                            diaries = data.diaries.associate {
+                                DateUtil.asLocalDateTime(it.createdAt)
+                                    .toLocalDate() to GetDiarySummaryDto(
+                                    id = it.diaryId,
+                                    content = it.content,
+                                    createdAt = DateUtil.asLocalDateTime(it.createdAt)
+                                        .toLocalTime()
+                                )
+                            },
+                            has30Past = data.has30Past,
+                        )
+                    )
+                }
+            } else {
+                throw response.code().handleStatusCode()
             }
+        }
 
-    override suspend fun getTopic(): Result<Topic> =
-        kotlin.runCatching {
-            diaryReader.getTopic()
-        }.map { response ->
-            Topic(
-                id = response.data!!.topicId,
-                content = response.data.content,
-            )
+    override suspend fun getTopic(): ApiResult<GetTopicDto> =
+        diaryService.getTopic().let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.data.let { data ->
+                    ApiResult(
+                        response.code(), GetTopicDto(
+                            id = data.topicId,
+                            content = data.content
+                        )
+                    )
+                }
+            } else {
+                throw response.code().handleStatusCode()
+            }
         }
 }

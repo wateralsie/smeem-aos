@@ -1,40 +1,41 @@
 package com.sopt.smeem.domain.repository
 
-import com.sopt.smeem.domain.model.Badge
-import com.sopt.smeem.domain.model.LoginResult
-import com.sopt.smeem.domain.model.MyPage
-import com.sopt.smeem.domain.model.OnBoarding
+import com.sopt.smeem.domain.common.ApiResult
+import com.sopt.smeem.domain.dto.GetBadgeListDto
+import com.sopt.smeem.domain.dto.LoginResultDto
+import com.sopt.smeem.domain.dto.MyInfoDto
+import com.sopt.smeem.domain.dto.MyPlanDtoWrapper
+import com.sopt.smeem.domain.dto.MySmeemDataDto
+import com.sopt.smeem.domain.dto.PostOnBoardingDto
 import com.sopt.smeem.domain.model.PushAlarm
 import com.sopt.smeem.domain.model.Training
 
 interface UserRepository {
-    /**
-     * OnBoarding 결과 (학습 목표, 알람 여부, 알람 시간) 를 서버로 전송합니다. (사전에 로그인 없이 진입한 상태)
-     */
-    suspend fun registerOnBoarding(onBoarding: OnBoarding, loginResult: LoginResult): Result<Unit>
 
-    /**
-     * 닉네임 및 이용약관 정보를 서버로 전송합니다.
-     */
-    suspend fun modifyUserInfo(
-        accessToken: String? = null,
+    suspend fun registerOnBoarding(
+        onBoardingDto: PostOnBoardingDto,
+        loginResult: LoginResultDto
+    ): ApiResult<Unit>
+
+    suspend fun modifyUsername(nickname: String): ApiResult<Boolean>
+
+    suspend fun registerUserInfo(
+        accessToken: String,
         nickname: String,
-        marketingAcceptance: Boolean? = null
-    ): Result<Boolean>
+        marketingAcceptance: Boolean
+    ): ApiResult<Boolean>
 
-    suspend fun getMyPage(): Result<MyPage>
+    suspend fun getMySmeemData(): ApiResult<MySmeemDataDto>
 
-    /**
-     * 나의 뱃지 정보를 조회합니다.
-     */
-    suspend fun getMyBadges(): Result<List<Badge>>
+    suspend fun getMyPlanData(): ApiResult<MyPlanDtoWrapper>
 
-    /**
-     * 트레이닝 정보를 수정합니다.
-     */
-    suspend fun editTraining(accessToken: String? = null, training: Training): Result<Unit>
+    suspend fun getMyInfo(): ApiResult<MyInfoDto>
 
-    suspend fun editPushAlarm(accessToken: String? = null, push: PushAlarm): Result<Unit>
-
-    suspend fun deleteUser(): Result<Unit>
+    suspend fun registerTraining(accessToken: String, training: Training): ApiResult<Unit>
+    suspend fun editTraining(training: Training): ApiResult<Unit>
+    suspend fun registerPushAlarm(accessToken: String, push: PushAlarm): ApiResult<Unit>
+    suspend fun editPushAlarm(push: PushAlarm): ApiResult<Unit>
+    suspend fun deleteUser(): ApiResult<Unit>
+    suspend fun getMyBadges(): ApiResult<List<GetBadgeListDto>>
+    suspend fun activeVisit(): ApiResult<Unit>
 }

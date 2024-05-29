@@ -1,9 +1,116 @@
 package com.sopt.smeem.data.datasource
 
+import com.sopt.smeem.domain.dto.GetBadgeListDto
 import com.sopt.smeem.domain.model.Badge
 import com.sopt.smeem.domain.model.BadgeType
 
 object BadgeList {
+
+    /***** new - temp *****/
+    val sprint2 = listOf<GetBadgeListDto>(
+        GetBadgeListDto(
+            badgeId = 1,
+            name = "웰컴 배지",
+            type = BadgeType.EVENT,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            contentForBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/6b3319cb-4c6f-4bf2-86dd-7576a44b46c7",
+            badgeAcquisitionRatio = 0.9
+        ),
+        GetBadgeListDto(
+            badgeId = 2,
+            name = "첫 번째 일기",
+            type = BadgeType.COUNTING,
+            hasBadge = true,
+            remainingNumber = 6,
+            contentForNonBadgeOwner = "일기를 n번 더 작성해요.",
+            contentForBadgeOwner = "시작이 좋아요!",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/10ed4dd9-276a-4344-87a8-f39b91deebd5",
+            badgeAcquisitionRatio = 0.5
+        ),
+        GetBadgeListDto(
+            badgeId = 3,
+            name = "10번째 일기",
+            type = BadgeType.COUNTING,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "일기를 n번 더 작성해요.",
+            contentForBadgeOwner = "벌써 10번째 일기라니, 멋져요!",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/645082e3-9c25-4698-b614-b575b75be188",
+            badgeAcquisitionRatio = 0.38
+        ),
+        GetBadgeListDto(
+            badgeId = 4,
+            name = "웰컴 배지",
+            type = BadgeType.EVENT,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            contentForBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/41e9ef62-3691-4ba8-a764-55cfd7cb7598",
+            badgeAcquisitionRatio = 0.255
+        ),
+        GetBadgeListDto(
+            badgeId = 5,
+            name = "웰컴 배지",
+            type = BadgeType.EVENT,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            contentForBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/56502acd-a30c-4fa1-a35d-3a53e3bef3a2",
+            badgeAcquisitionRatio = 0.9
+        ),
+        GetBadgeListDto(
+            badgeId = 6,
+            name = "웰컴 배지",
+            type = BadgeType.EVENT,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            contentForBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/3b26b274-722f-4dca-a560-e28c266efe69",
+            badgeAcquisitionRatio = 0.9
+        ),
+        GetBadgeListDto(
+            badgeId = 7,
+            name = "웰컴 배지",
+            type = BadgeType.EVENT,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            contentForBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/9f0c9af4-fd5e-4436-adac-7755312f00de",
+            badgeAcquisitionRatio = 0.9
+        ),
+        GetBadgeListDto(
+            badgeId = 8,
+            name = "웰컴 배지",
+            type = BadgeType.EVENT,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            contentForBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/c15cdabd-7c89-4cab-9a33-65de1a8e3eef",
+            badgeAcquisitionRatio = 0.9
+        ),
+        GetBadgeListDto(
+            badgeId = 9,
+            name = "웰컴 배지",
+            type = BadgeType.EVENT,
+            hasBadge = true,
+            remainingNumber = null,
+            contentForNonBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            contentForBadgeOwner = "가입한 모든 사용자에게 제공돼요.",
+            imageUrl = "https://github.com/Team-Smeme/Smeme-plan/assets/120551217/df3bdbc6-544b-405e-b3ea-255a1ca2c8d9",
+            badgeAcquisitionRatio = 0.9
+        ),
+    )
+
+    /***** old dummy data *****/
+
     val event = listOf<Badge>(
         Badge(
             name = "웰컴 배지",

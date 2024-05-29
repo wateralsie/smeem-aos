@@ -4,17 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="healthStatus"
-            type="com.sopt.smeem.domain.model.health.HealthStatus" />
+            type="com.sopt.smeem.presentation.health.HealthStatus" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".presentation.health.HealthCheckActivity"
         android:paddingHorizontal="18dp"
-        >
+        tools:context=".presentation.health.HealthCheckActivity">
 
         <Button
             android:id="@+id/btn_health_check"
@@ -22,11 +22,10 @@
             android:layout_height="wrap_content"
 
             android:text="Health Check"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_health"
@@ -34,24 +33,10 @@
             android:layout_height="wrap_content"
 
             android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btn_health_check"
-            tools:text= "@{healthStatus.statusPostFix()}"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            />
-
-        <TextView
-            android:id="@+id/tv_error"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-
-            android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/tv_health"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-
-            tools:text="@{healthStatus.messagePostFix()}"
-            />
+            tools:text="@{healthStatus.toString}" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

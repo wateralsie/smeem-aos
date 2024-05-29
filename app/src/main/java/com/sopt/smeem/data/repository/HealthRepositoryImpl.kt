@@ -1,14 +1,18 @@
 package com.sopt.smeem.data.repository
 
-import com.sopt.smeem.data.datasource.HealthChecker
-import com.sopt.smeem.domain.model.health.HealthStatus
+import com.sopt.smeem.data.service.HealthService
+import com.sopt.smeem.domain.common.ApiResult
 import com.sopt.smeem.domain.repository.HealthRepository
 
 class HealthRepositoryImpl(
-    private val healthChecker: HealthChecker
+    private val healthService: HealthService
 ) : HealthRepository {
-    override suspend fun getHealth(): Result<HealthStatus> =
-        kotlin.runCatching { healthChecker.getHealth() }.map {
-                response -> HealthStatus.init(response)
+    override suspend fun getHealth(): ApiResult<Unit> =
+        healthService.getStatus().let { response ->
+            if (response.isSuccessful) {
+                ApiResult(response.code(), Unit)
+            } else {
+                throw response.code().handleStatusCode()
+            }
         }
 }

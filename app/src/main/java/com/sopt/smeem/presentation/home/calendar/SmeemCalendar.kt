@@ -17,15 +17,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sopt.smeem.domain.model.Date
+import com.sopt.smeem.presentation.compose.theme.gray100
 import com.sopt.smeem.presentation.home.HomeViewModel
 import com.sopt.smeem.presentation.home.calendar.component.CalendarTitle
 import com.sopt.smeem.presentation.home.calendar.component.CalendarToggleSlider
 import com.sopt.smeem.presentation.home.calendar.component.MonthlyCalendar
 import com.sopt.smeem.presentation.home.calendar.component.WeekLabel
 import com.sopt.smeem.presentation.home.calendar.component.WeeklyCalendar
-import com.sopt.smeem.presentation.home.calendar.core.CalendarIntent
+import com.sopt.smeem.presentation.home.calendar.core.CalendarState
 import com.sopt.smeem.presentation.home.calendar.core.Period
-import com.sopt.smeem.presentation.home.calendar.ui.theme.gray100
 import com.sopt.smeem.util.getWeekStartDate
 import java.time.LocalDate
 import java.time.YearMonth
@@ -46,7 +46,7 @@ fun SmeemCalendar(
             dateList = dateList.value,
             selectedDate = selectedDate.value,
             currentMonth = currentMonth.value,
-            onIntent = viewModel::onIntent,
+            onIntent = viewModel::onStateChange,
             isCalendarExpanded = isCalendarExpanded.value,
             onDayClick = {},
         )
@@ -58,7 +58,7 @@ private fun SmeemCalendarImpl(
     dateList: Array<List<Date>>,
     selectedDate: LocalDate,
     currentMonth: YearMonth,
-    onIntent: (CalendarIntent) -> Unit,
+    onIntent: (CalendarState) -> Unit,
     isCalendarExpanded: Boolean,
     onDayClick: (LocalDate) -> Unit,
 ) {
@@ -70,9 +70,9 @@ private fun SmeemCalendarImpl(
                 detectDragGestures { change, dragAmount ->
                     change.consume()
                     if (dragAmount.y < 0) {
-                        onIntent(CalendarIntent.CollapseCalendar)
+                        onIntent(CalendarState.CollapseCalendar)
                     } else if (dragAmount.y > 0) {
-                        onIntent(CalendarIntent.ExpandCalendar)
+                        onIntent(CalendarState.ExpandCalendar)
                     }
                 }
             },
@@ -89,14 +89,14 @@ private fun SmeemCalendarImpl(
                 currentMonth = currentMonth,
                 loadDatesForMonth = { yearMonth ->
                     onIntent(
-                        CalendarIntent.LoadNextDates(
+                        CalendarState.LoadNextDates(
                             startDate = yearMonth.atDay(1),
                             period = Period.MONTH,
                         ),
                     )
                 },
                 onDayClick = {
-                    onIntent(CalendarIntent.SelectDate(it))
+                    onIntent(CalendarState.SelectDate(it))
                     onDayClick(it)
                 },
             )
@@ -106,7 +106,7 @@ private fun SmeemCalendarImpl(
                 selectedDate = selectedDate,
                 loadNextWeek = { nextWeekDate ->
                     onIntent(
-                        CalendarIntent.LoadNextDates(
+                        CalendarState.LoadNextDates(
                             startDate = nextWeekDate,
                             period = Period.WEEK,
                         ),
@@ -114,7 +114,7 @@ private fun SmeemCalendarImpl(
                 },
                 loadPrevWeek = { endWeekDate ->
                     onIntent(
-                        CalendarIntent.LoadNextDates(
+                        CalendarState.LoadNextDates(
                             startDate = endWeekDate.minusDays(
                                 1,
                             ).getWeekStartDate(),
@@ -123,7 +123,7 @@ private fun SmeemCalendarImpl(
                     )
                 },
                 onDayClick = {
-                    onIntent(CalendarIntent.SelectDate(it))
+                    onIntent(CalendarState.SelectDate(it))
                     onDayClick(it)
                 },
             )

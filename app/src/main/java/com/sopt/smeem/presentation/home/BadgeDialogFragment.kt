@@ -12,8 +12,8 @@ import com.sopt.smeem.R
 import com.sopt.smeem.databinding.DialogBadgeBinding
 import com.sopt.smeem.event.AmplitudeEventType
 import com.sopt.smeem.presentation.EventVM
-import com.sopt.smeem.presentation.mypage.MyBadgesActivity
-import com.sopt.smeem.presentation.mypage.MyBadgesActivity.Companion.ENTER_MY_BADGES_FROM
+import com.sopt.smeem.presentation.mypage.MyPageActivity
+import com.sopt.smeem.presentation.write.natiive.NativeWriteStep1Activity
 import com.sopt.smeem.util.setOnSingleClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -44,6 +44,12 @@ class BadgeDialogFragment : DialogFragment() {
 
         initDataBinding()
         initBadgeData(name, imageUrl, isFirstBadge)
+
+        if (name == getString(R.string.welcome_badge)) {
+            binding.btnBadgeMore.text = getString(R.string.navigate_first_diary)
+        } else {
+            binding.btnBadgeMore.text = getString(R.string.view_all_badge)
+        }
     }
 
     private fun addListeners() {
@@ -55,17 +61,26 @@ class BadgeDialogFragment : DialogFragment() {
         }
         binding.btnBadgeMore.setOnSingleClickListener {
             eventVm.sendEvent(AmplitudeEventType.BADGE_MORE_CLICK)
+            val name = arguments?.getString(BADGE_NAME) as String
 
-            if (arguments?.getBoolean(IS_FIRST_BADGE) == true) {
+            if (name == getString(R.string.welcome_badge)) {
                 eventVm.sendEvent(AmplitudeEventType.WELCOME_MORE_CLICK)
+
+                Intent(requireContext(), NativeWriteStep1Activity::class.java)
+                    .apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+                    .run(::startActivity)
+            } else {
+                Intent(requireContext(), MyPageActivity::class.java)
+                    .apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+                    .run(::startActivity)
             }
+
             dismiss()
-            Intent(requireContext(), MyBadgesActivity::class.java)
-                .apply {
-                    putExtra(ENTER_MY_BADGES_FROM, FROM_BADGE_DIALOG)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                }
-                .run(::startActivity)
+
         }
     }
 
@@ -90,7 +105,6 @@ class BadgeDialogFragment : DialogFragment() {
         private const val BADGE_NAME = "badgeName"
         private const val BADGE_IMAGE_URL = "badgeImageUrl"
         private const val IS_FIRST_BADGE = "isFirstBadge"
-        const val FROM_BADGE_DIALOG = "fromBadgeDialog"
 
         fun newInstance(
             name: String,

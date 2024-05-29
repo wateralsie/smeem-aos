@@ -7,19 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.datastore.preferences.core.edit
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sopt.smeem.R
-import com.sopt.smeem.data.SmeemDataStore.RECENT_DIARY_DATE
-import com.sopt.smeem.data.SmeemDataStore.dataStore
 import com.sopt.smeem.databinding.BottomSheetDiaryDetailBinding
-import com.sopt.smeem.description
 import com.sopt.smeem.event.AmplitudeEventType
 import com.sopt.smeem.presentation.EventVM
-import kotlinx.coroutines.launch
-import java.time.LocalDate
+import com.sopt.smeem.presentation.IntentConstants.DIARY_ID
+import com.sopt.smeem.presentation.IntentConstants.ORIGINAL_CONTENT
+import com.sopt.smeem.presentation.IntentConstants.RANDOM_TOPIC
 
 class DiaryDetailBottomSheet(
     private val viewModel: DiaryDetailViewModel,
@@ -27,8 +23,6 @@ class DiaryDetailBottomSheet(
 ) : BottomSheetDialogFragment() {
     private var _binding: BottomSheetDiaryDetailBinding? = null
     private val binding get() = requireNotNull(_binding)
-
-    private lateinit var viewModelDate: LocalDate
     private lateinit var fragmentContext: Context
 
     override fun onAttach(context: Context) {
@@ -42,8 +36,6 @@ class DiaryDetailBottomSheet(
         savedInstanceState: Bundle?,
     ): View {
         _binding = BottomSheetDiaryDetailBinding.inflate(inflater, container, false)
-
-        viewModelDate = viewModel.date.value?.toLocalDate()!!
 
         return binding.root
     }
@@ -66,9 +58,9 @@ class DiaryDetailBottomSheet(
 
     private fun moveToEdit() {
         Intent(requireContext(), DiaryEditActivity::class.java).apply {
-            putExtra("diaryId", viewModel.diaryId)
-            putExtra("originalContent", viewModel.diary.value)
-            putExtra("randomTopic", viewModel.topic.value)
+            putExtra(DIARY_ID, viewModel.getDiaryId())
+            putExtra(ORIGINAL_CONTENT, viewModel.getContent())
+            putExtra(RANDOM_TOPIC, viewModel.getTopic())
         }.run(::startActivity)
         eventViewModel.sendEvent(AmplitudeEventType.MY_DIARY_EDIT)
     }
@@ -79,20 +71,9 @@ class DiaryDetailBottomSheet(
             .setNegativeButton("아니요") { dialog, which -> }
             .setPositiveButton("예") { dialog, which ->
                 viewModel.deleteDiary(
-                    onSuccess = {
-                        // 오늘 작성한 일기일 때만 일기 삭제 시 datastore의 최근 일기 날짜 삭제
-                        if (viewModelDate.isEqual(LocalDate.now())) {
-                            lifecycleScope.launch {
-                                fragmentContext.dataStore.edit { storage ->
-                                    storage.remove(RECENT_DIARY_DATE)
-                                }
-                            }
-                        }
-                        viewModel.isDiaryDeleted.value = true
-                        dismiss()
-                    },
-                    onError = { e ->
-                        Toast.makeText(requireContext(), e.description(), Toast.LENGTH_SHORT).show()
+                    onSuccess = { dismiss() },
+                    onError = { t ->
+                        Toast.makeText(requireContext(), t.message, Toast.LENGTH_SHORT).show()
                     },
                 )
             }
@@ -100,8 +81,8 @@ class DiaryDetailBottomSheet(
     }
 
     override fun onDestroyView() {
-        _binding = null
         super.onDestroyView()
+        _binding = null
     }
 
     companion object {

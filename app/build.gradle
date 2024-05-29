@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
     id 'kotlin-parcelize'
@@ -30,14 +31,14 @@ android {
         applicationId "com.sopt.smeem"
         minSdk 28
         targetSdk 34
-        versionCode 20240403
+        versionCode 20240527
         /*
         x.y.z
         x: ui, 주요기능의 큰 변화
         y: 기능 추가, 가시적인 변화
         z: 오류 수정, 긴급 업데이트 사항
         */
-        versionName "1.2.0"
+        versionName "2.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "KAKAO_API_KEY", properties['kakao_api_key']
@@ -46,6 +47,7 @@ android {
         buildConfigField "String", "DEEPL_API_KEY", properties['deepl_api_key']
         buildConfigField "String", "DEV_AMPLITUDE_API_KEY", properties['dev_amplitude_api_key']
         buildConfigField "String", "PROD_AMPLITUDE_API_KEY", properties['prod_amplitude_api_key']
+        buildConfigField "String", "APPFLYER_DEV_KEY", properties['appsflyer_dev_key']
         manifestPlaceholders = [KAKAO_API_KEY: properties['kakao_api_key_manifest']]
         vectorDrawables {
             useSupportLibrary true
@@ -174,6 +176,7 @@ dependencies {
     implementation(libs.firebase.config.ktx)
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.crashlytics.ktx)
     // test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -189,6 +192,8 @@ dependencies {
     implementation(libs.glide)
     // Amplitude
     implementation(libs.analytics.android)
+    // Browser
+    implementation(libs.androidx.browser)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
@@ -207,10 +212,22 @@ dependencies {
     // Compose navigation
     implementation(libs.androidx.navigation.compose)
 
+    // hilt navigation compose
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // coil compose
+    implementation(libs.coil.compose)
+
     // Optional - Integration with activities
     implementation(libs.androidx.activity.compose)
     // Optional - Integration with ViewModels
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Orbit
+    implementation(libs.bundles.orbit)
+
+    // Appsflyer
+    implementation(libs.appsflyer.android.sdk)
 
     // Compose test
     androidTestImplementation(platform(libs.androidx.compose.bom))

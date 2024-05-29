@@ -2,18 +2,16 @@ package com.sopt.smeem.presentation.splash
 
 import android.content.Intent
 import android.content.res.ColorStateList
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import com.google.android.material.snackbar.Snackbar
 import com.sopt.smeem.R
-import com.sopt.smeem.Smeem.Companion.AMPLITUDE
 import com.sopt.smeem.databinding.ActivitySplashLoginBinding
-import com.sopt.smeem.domain.model.LoginResult
-import com.sopt.smeem.event.AmplitudeEventType.BADGE_MORE_CLICK
+import com.sopt.smeem.domain.dto.LoginResultDto
 import com.sopt.smeem.event.AmplitudeEventType.FIRST_VIEW
-import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_ALARM_VIEW
-import com.sopt.smeem.event.AmplitudeEventType.ON_BOARDING_GOAL_VIEW
 import com.sopt.smeem.event.AmplitudeEventType.SIGN_UP_SUCCESS
-import com.sopt.smeem.presentation.BindingActivity
 import com.sopt.smeem.presentation.EventVM
+import com.sopt.smeem.presentation.base.BindingActivity
 import com.sopt.smeem.presentation.home.HomeActivity
 import com.sopt.smeem.presentation.join.JoinConstant.ACCESS_TOKEN
 import com.sopt.smeem.presentation.join.JoinConstant.REFRESH_TOKEN
@@ -28,12 +26,15 @@ class SplashLoginActivity :
     lateinit var bs: LoginBottomSheet
     private val vm: LoginVM by viewModels()
     private val eventVm: EventVM by viewModels()
+    private var backPressedTime: Long = 0
 
     override fun constructLayout() {
         super.constructLayout()
         bs = LoginBottomSheet()
-        binding.ivSignInHeader.imageTintList = ColorStateList.valueOf(resources.getColor(R.color.point, null))
+        binding.ivSignInHeader.imageTintList =
+            ColorStateList.valueOf(resources.getColor(R.color.point, null))
 
+        initBackPressedCallback()
         eventVm.sendEvent(FIRST_VIEW)
     }
 
@@ -83,7 +84,7 @@ class SplashLoginActivity :
         finish()
     }
 
-    private fun gotoNext(loginResult: LoginResult) {
+    private fun gotoNext(loginResult: LoginResultDto) {
         when (loginResult.isPlanRegistered) {
             true -> gotoJoin(
                 loginResult.apiAccessToken,
@@ -112,5 +113,28 @@ class SplashLoginActivity :
         startActivity(toOnBoarding)
 
         if (!isFinishing) finish()
+    }
+
+    private fun initBackPressedCallback() {
+        val onBackPressedCallback =
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (System.currentTimeMillis() - backPressedTime >= BACK_PRESSED_INTERVAL) {
+                        backPressedTime = System.currentTimeMillis()
+                        Snackbar.make(
+                            binding.root,
+                            getString(R.string.notice_back_process),
+                            Snackbar.LENGTH_SHORT,
+                        ).show()
+                    } else {
+                        finish()
+                    }
+                }
+            }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+    }
+
+    companion object {
+        const val BACK_PRESSED_INTERVAL = 2000
     }
 }

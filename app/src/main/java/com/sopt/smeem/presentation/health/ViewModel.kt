@@ -3,8 +3,6 @@ package com.sopt.smeem.presentation.health
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.sopt.smeem.data.ApiPool.onHttpFailure
-import com.sopt.smeem.domain.model.health.HealthStatus
 import com.sopt.smeem.domain.repository.HealthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -22,9 +20,10 @@ internal open class ViewModel @Inject constructor() : androidx.lifecycle.ViewMod
 
     fun connect(onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            healthRepository.getHealth().apply {
-                this.onSuccess { _result.value = it }
-                this.onHttpFailure { e -> onError(e) }
+            try {
+                _result.value = healthRepository.getHealth().run { HealthStatus(true) }
+            } catch (t: Throwable) {
+                onError(t)
             }
         }
     }

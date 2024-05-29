@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
@@ -13,34 +14,22 @@
         android:value="false" />
 
     <application
-        tools:replace="icon, label"
         android:name=".Smeem"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
         android:icon="${appIcon}"
         android:label="${appName}"
         android:supportsRtl="true"
         android:theme="@style/Theme.Smeem"
         android:usesCleartextTraffic="true"
+        tools:replace="icon, label"
         tools:targetApi="31">
 
-        <activity
-            android:name=".presentation.mypage.MyPageMoreActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.agreement.AgreementViewActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".presentation.mypage.EditTrainingTimeActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".presentation.mypage.DisplayTrainingGoalActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" /> <!-- Splash -->
+        <!-- Splash -->
         <activity
             android:name=".presentation.splash.SplashStartActivity"
             android:exported="true"
@@ -50,6 +39,28 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="smeem.onelink.me"
+                    android:scheme="https" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="splash"
+                    android:scheme="smeem" />
             </intent-filter>
         </activity>
         <activity
@@ -109,26 +120,15 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".presentation.mypage.ChangingNicknameActivity"
+            android:name=".presentation.home.HomeActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateAlwaysVisible|adjustResize" />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.mypage.MyPageActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".presentation.mypage.MyBadgesActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".presentation.mypage.EditTrainingGoalActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".presentation.home.HomeActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" /> <!-- Messaging Service -->
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+        <!-- Messaging Service -->
         <service
             android:name=".MessagingService"
             android:exported="false">

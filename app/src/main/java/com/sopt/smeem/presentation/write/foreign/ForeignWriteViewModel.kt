@@ -5,16 +5,18 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
-import com.sopt.smeem.LocalStatus
-import com.sopt.smeem.SmeemException
-import com.sopt.smeem.data.ApiPool.onHttpFailure
-import com.sopt.smeem.domain.model.Diary
-import com.sopt.smeem.domain.model.RetrievedBadge
+import com.sopt.smeem.data.SmeemDataStore.RECENT_DIARY_DATE
+import com.sopt.smeem.domain.dto.RetrievedBadgeDto
+import com.sopt.smeem.domain.dto.WriteDiaryRequestDto
+import com.sopt.smeem.domain.model.LocalStatus
 import com.sopt.smeem.domain.repository.DiaryRepository
 import com.sopt.smeem.domain.repository.LocalRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,22 +30,51 @@ class ForeignWriteViewModel @Inject constructor(
     val diary = MutableLiveData("")
     val isValidDiary: LiveData<Boolean> = diary.map { isValidDiaryFormat(it) }
 
-    fun getRandomTopic(onError: (SmeemException) -> Unit) {
+    fun getRandomTopic(onError: (Throwable) -> Unit) {
         viewModelScope.launch {
-            diaryRepository.getTopic()
-                .onSuccess {
-                    topicId = it.id
-                    topic.value = it.content
+            try {
+                diaryRepository.getTopic().run {
+                    topic.value = data().content
+                    topicId = data().id
                 }
-                .onHttpFailure { e -> onError(e) }
+            } catch (t: Throwable) {
+                onError(t)
+            }
         }
     }
 
-    fun uploadDiary(onSuccess: (List<RetrievedBadge>) -> Unit, onError: (SmeemException) -> Unit) {
-        if (topicId != (-1).toLong()) {
-            diaryWithTopic(onSuccess, onError)
-        } else {
-            diaryWithoutTopic(onSuccess, onError)
+    fun uploadDiary(onSuccess: (List<RetrievedBadgeDto>) -> Unit, onError: (Throwable) -> Unit) {
+        val selectedTopicId = if (topicId < 0) null else topicId
+
+        diary.value?.let {
+            viewModelScope.launch {
+                requestToServer(WriteDiaryRequestDto(it, selectedTopicId), onSuccess, onError)
+                updateRecentDiaryDateOnLocal()
+            }
+        }
+    }
+
+    private suspend fun requestToServer(
+        dto: WriteDiaryRequestDto,
+        onSuccess: (List<RetrievedBadgeDto>) -> Unit,
+        onError: (Throwable) -> Unit
+    ) = coroutineScope {
+        launch {
+            try {
+                diaryRepository.postDiary(dto).run { onSuccess(data().retrievedBadgeList) }
+            } catch (t: Throwable) {
+                onError(t)
+            }
+        }
+    }
+
+    private suspend fun updateRecentDiaryDateOnLocal() = coroutineScope {
+        // recent_diary_date 값 변경
+        launch {
+            localRepository.setStringValue(
+                RECENT_DIARY_DATE, LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            )
         }
     }
 
@@ -54,37 +85,6 @@ class ForeignWriteViewModel @Inject constructor(
     fun randomTopicTooltipOff() {
         viewModelScope.launch {
             localRepository.saveStatus(LocalStatus.RANDOM_TOPIC_TOOL_TIP)
-        }
-    }
-
-    private fun diaryWithTopic(
-        onSuccess: (List<RetrievedBadge>) -> Unit,
-        onError: (SmeemException) -> Unit
-    ) {
-        viewModelScope.launch {
-            diaryRepository.postDiary(
-                Diary(
-                    topicId = topicId,
-                    content = diary.value!!
-                )
-            )
-                .onSuccess(onSuccess)
-                .onHttpFailure { e -> onError(e) }
-        }
-    }
-
-    private fun diaryWithoutTopic(
-        onSuccess: (List<RetrievedBadge>) -> Unit,
-        onError: (SmeemException) -> Unit
-    ) {
-        viewModelScope.launch {
-            diaryRepository.postDiary(
-                Diary(
-                    content = diary.value!!
-                )
-            )
-                .onSuccess(onSuccess)
-                .onHttpFailure { e -> onError(e) }
         }
     }
 

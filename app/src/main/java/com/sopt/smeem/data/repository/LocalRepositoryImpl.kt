@@ -8,11 +8,11 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sopt.smeem.LocalStatus
-import com.sopt.smeem.SmeemErrorCode
-import com.sopt.smeem.SmeemException
 import com.sopt.smeem.data.SmeemDataStore.dataStore
+import com.sopt.smeem.domain.common.SmeemErrorCode
+import com.sopt.smeem.domain.common.SmeemException
 import com.sopt.smeem.domain.model.Authentication
+import com.sopt.smeem.domain.model.LocalStatus
 import com.sopt.smeem.domain.repository.LocalRepository
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -24,6 +24,14 @@ import javax.inject.Inject
 class LocalRepositoryImpl @Inject constructor(
     private val context: Context
 ) : LocalRepository {
+
+    override suspend fun setStringValue(key: Preferences.Key<String>, value: String) {
+        context.dataStore.edit { storage -> storage[key] = value }
+    }
+
+    override suspend fun remove(key: Preferences.Key<String>) {
+        context.dataStore.edit { storage -> storage.remove(key) }
+    }
 
     /**
      * LocalStorage 로 부터 Authentication 추출
@@ -43,13 +51,11 @@ class LocalRepositoryImpl @Inject constructor(
                 Authentication(
                     accessToken = preferences[API_ACCESS_TOKEN] ?: throw SmeemException(
                         SmeemErrorCode.UNAUTHORIZED,
-                        "인증이 필요합니다.",
-                        IllegalStateException()
+                        "인증이 필요합니다."
                     ),
                     refreshToken = preferences[API_REFRESH_TOKEN] ?: throw SmeemException(
                         SmeemErrorCode.UNAUTHORIZED,
-                        "인증이 필요합니다.",
-                        IllegalStateException()
+                        "인증이 필요합니다."
                     )
                 )
             }.first()
@@ -64,12 +70,11 @@ class LocalRepositoryImpl @Inject constructor(
                     requireNotNull(authentication.accessToken) { "NPE when register authentication with refreshToken" }
             }
         } catch (e: IOException) {
-            throw SmeemException(errorCode = SmeemErrorCode.SYSTEM_ERROR, throwable = e)
+            throw SmeemException(errorCode = SmeemErrorCode.SYSTEM_ERROR)
         } catch (e: IllegalArgumentException) {
             throw SmeemException(
                 errorCode = SmeemErrorCode.SYSTEM_ERROR,
-                logMessage = "token 값 저장 중, null 로 접근하였습니다. (authentication = $authentication)",
-                throwable = e
+                logMessage = "token 값 저장 중, null 로 접근하였습니다. (authentication = $authentication)"
             )
         }
     }
@@ -94,7 +99,7 @@ class LocalRepositoryImpl @Inject constructor(
                 }
             }
         } catch (t: Throwable) {
-            throw SmeemException(errorCode = SmeemErrorCode.SYSTEM_ERROR, throwable = t)
+            throw SmeemException(errorCode = SmeemErrorCode.SYSTEM_ERROR)
         }
     }
 
@@ -102,7 +107,8 @@ class LocalRepositoryImpl @Inject constructor(
         .catch { emit(emptyPreferences()) }
         .map { preferences: Preferences ->
             when (localStatus) {
-                LocalStatus.RANDOM_TOPIC_TOOL_TIP -> preferences[RANDOM_TOPIC_TOOL_TIP_SWITCH] ?: true // 최초에는 킨 상태
+                LocalStatus.RANDOM_TOPIC_TOOL_TIP -> preferences[RANDOM_TOPIC_TOOL_TIP_SWITCH]
+                    ?: true // 최초에는 킨 상태
             }
         }
         .first()
@@ -111,7 +117,7 @@ class LocalRepositoryImpl @Inject constructor(
         try {
             context.dataStore.edit { preferences -> preferences.clear() }
         } catch (t: Throwable) {
-            throw SmeemException(errorCode = SmeemErrorCode.SYSTEM_ERROR, throwable = t)
+            throw SmeemException(errorCode = SmeemErrorCode.SYSTEM_ERROR)
         }
     }
 

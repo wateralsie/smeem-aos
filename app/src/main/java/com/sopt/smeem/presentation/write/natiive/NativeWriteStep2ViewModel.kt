@@ -1,60 +1,66 @@
 package com.sopt.smeem.presentation.write.natiive
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
-import com.sopt.smeem.SmeemException
-import com.sopt.smeem.data.ApiPool.onHttpFailure
-import com.sopt.smeem.domain.model.Diary
-import com.sopt.smeem.domain.model.RetrievedBadge
+import com.sopt.smeem.data.SmeemDataStore
+import com.sopt.smeem.domain.dto.RetrievedBadgeDto
+import com.sopt.smeem.domain.dto.WriteDiaryRequestDto
 import com.sopt.smeem.domain.repository.DiaryRepository
+import com.sopt.smeem.domain.repository.LocalRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
 class NativeWriteStep2ViewModel @Inject constructor(
-    private val diaryRepository: DiaryRepository
+    private val diaryRepository: DiaryRepository,
+    private val localRepository: LocalRepository,
 ) : ViewModel() {
     var topicId: Long = -1
 
     val diary = MutableLiveData("")
     val isValidDiary: LiveData<Boolean> = diary.map { isValidDiaryFormat(it) }
 
-    fun uploadDiary(onSuccess: (List<RetrievedBadge>) -> Unit, onError: (SmeemException) -> Unit) {
-        if (topicId != (-1).toLong()) {
-            diaryWithTopic(onSuccess, onError)
-        } else {
-            diaryWithoutTopic(onSuccess, onError)
+    fun uploadDiary(onSuccess: (List<RetrievedBadgeDto>) -> Unit, onError: (Throwable) -> Unit) {
+        val selectedTopicId = if (topicId < 0) null else topicId
+
+        diary.value?.let { content ->
+            viewModelScope.launch {
+                launch {
+                    requestToServer(
+                        WriteDiaryRequestDto(content, selectedTopicId),
+                        onSuccess,
+                        onError
+                    )
+                }
+                launch { updateRecentDiaryDateOnLocal() }
+            }
         }
     }
 
-    private fun diaryWithTopic(onSuccess: (List<RetrievedBadge>) -> Unit, onError: (SmeemException) -> Unit) {
-        viewModelScope.launch {
-            diaryRepository.postDiary(
-                Diary(
-                    topicId = topicId,
-                    content = diary.value!!
-                )
-            )
-                .onSuccess(onSuccess)
-                .onHttpFailure { e -> onError(e) }
+    private suspend fun requestToServer(
+        dto: WriteDiaryRequestDto,
+        onSuccess: (List<RetrievedBadgeDto>) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        try {
+            diaryRepository.postDiary(dto).run { onSuccess(data().retrievedBadgeList) }
+        } catch (t: Throwable) {
+            onError(t)
         }
     }
 
-    private fun diaryWithoutTopic(onSuccess: (List<RetrievedBadge>) -> Unit, onError: (SmeemException) -> Unit) {
-        viewModelScope.launch {
-            diaryRepository.postDiary(
-                Diary(
-                    content = diary.value!!
-                )
-            )
-                .onSuccess(onSuccess)
-                .onHttpFailure { e -> onError(e) }
-        }
+    private suspend fun updateRecentDiaryDateOnLocal() {
+        // recent_diary_date 값 변경
+        localRepository.setStringValue(
+            SmeemDataStore.RECENT_DIARY_DATE, LocalDate.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        )
     }
 
     private fun isValidDiaryFormat(diary: String): Boolean {

@@ -1,7 +1,7 @@
 package com.sopt.smeem.domain.repository
 
-import com.sopt.smeem.domain.model.health.HealthStatus
+import com.sopt.smeem.domain.common.ApiResult
 
 interface HealthRepository {
-    suspend fun getHealth(): Result<HealthStatus>
+    suspend fun getHealth(): ApiResult<Unit>
 }

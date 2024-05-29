@@ -1,42 +1,64 @@
 package com.sopt.smeem.data.repository
 
-import com.sopt.smeem.SmeemErrorCode
-import com.sopt.smeem.SmeemException
-import com.sopt.smeem.TrainingGoalType
-import com.sopt.smeem.data.datasource.TrainingManager
-import com.sopt.smeem.domain.model.TrainingGoal
-import com.sopt.smeem.domain.model.TrainingGoalSimple
+import com.sopt.smeem.data.service.TrainingService
+import com.sopt.smeem.domain.common.ApiResult
+import com.sopt.smeem.domain.dto.TrainingGoalDto
+import com.sopt.smeem.domain.dto.TrainingGoalSimpleDto
+import com.sopt.smeem.domain.dto.TrainingPlanDto
+import com.sopt.smeem.domain.model.TrainingGoalType
 import com.sopt.smeem.domain.repository.TrainingRepository
 
 class TrainingRepositoryImpl(
-    private val trainingManager: TrainingManager
+    private val trainingService: TrainingService,
 ) : TrainingRepository {
-    override suspend fun getDetail(goal: TrainingGoalType?): Result<TrainingGoal> =
-        kotlin.runCatching {
-            trainingManager.getDetail(
-                goal ?: throw SmeemException(
-                    errorCode = SmeemErrorCode.SYSTEM_ERROR,
-                    logMessage = "없는 트레이닝 목표에 대한 접근이 발생했습니다.",
-                    throwable = IllegalArgumentException()
-                )
-            )
-        }
-            .map {
-                TrainingGoal(
-                    title = it.data!!.title,
-                    goal = it.data.name,
-                    way = it.data.way,
-                    detail = it.data.detail
-                )
+    override suspend fun getDetail(goal: TrainingGoalType): ApiResult<TrainingGoalDto> =
+        trainingService.getDetail(goal).let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.data.let { data ->
+                    ApiResult(
+                        response.code(), TrainingGoalDto(
+                            title = data.title,
+                            goal = data.name,
+                            way = data.way,
+                            detail = data.detail,
+                        )
+                    )
+                }
+            } else {
+                throw response.code().handleStatusCode()
             }
+        }
 
-    override suspend fun getAll(): Result<TrainingGoalSimple> =
-        kotlin.runCatching {
-            trainingManager.getAll()
-        }.map {
-            TrainingGoalSimple(
-                goalType = TrainingGoalType.valueOf(it.data!!.goalType),
-                name = it.data.name
-            )
+    override suspend fun getAll(): ApiResult<TrainingGoalSimpleDto> =
+        trainingService.getAll().let { response ->
+            if (response.isSuccessful) {
+                response.body()!!.data.let { data ->
+                    ApiResult(
+                        response.code(), TrainingGoalSimpleDto(
+                            goalType = TrainingGoalType.valueOf(data.goalType),
+                            name = data.name,
+                        )
+                    )
+                }
+            } else {
+                throw response.code().handleStatusCode()
+            }
+        }
+
+    override suspend fun getPlans(): ApiResult<List<TrainingPlanDto>> =
+        trainingService.getPlans().let { response ->
+            if (response.isSuccessful) {
+                ApiResult(
+                    response.code(),
+                    response.body()!!.data.plans.map { planResponse ->
+                        TrainingPlanDto(
+                            id = planResponse.id,
+                            content = planResponse.content,
+                        )
+                    }
+                )
+            } else {
+                throw response.code().handleStatusCode()
+            }
         }
 }
